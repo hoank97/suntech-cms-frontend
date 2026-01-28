@@ -1,19 +1,51 @@
 'use client';
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast"
+import { useRequest } from "@/hooks/use-request";
+import { APIS } from "@/api/const";
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast()
+
+  const { request: loginRequest, data: loginData, loading: loginLoading } = useRequest();
+  const { request: profileRequest, data: profileData, loading: profileLoading } = useRequest({ hideToast: true });
+
+  useEffect(() => {
+    const token = localStorage.getItem('suntech-x-atk');
+    if (token) {
+      profileRequest(APIS.USER.PROFILE(), {
+        method: 'GET',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (profileData) {
+      localStorage.setItem('suntech-x-atk', profileData.token);
+      window.location.replace('/admin');
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    if (loginData) {
+      toast({
+        variant: "default",
+        title: "Success",
+        description: "Login successful",
+      });
+      localStorage.setItem('suntech-x-atk', loginData.token);
+      window.location.replace('/admin');
+    }
+  }, [loginData]);
 
   const handleFeatureUnderDevelopment = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -24,15 +56,16 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate login request
-    setTimeout(() => {
-      setIsLoading(false);
-      // Handle login logic here
-    }, 1000);
+    loginRequest(APIS.AUTH.LOGIN(), {
+      method: 'POST',
+      body: {
+        email: username,
+        password,
+      },
+    });
   };
 
-  return (
+  return profileLoading || profileLoading === undefined ? <Loader2 className="h-5 w-5 animate-spin" /> : (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       {/* Background accent elements */}
       <div className="fixed top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -103,10 +136,10 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={loginLoading}
               className="w-full h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {loginLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
 

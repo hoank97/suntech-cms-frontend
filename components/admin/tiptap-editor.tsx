@@ -57,12 +57,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    if (!editor) {
-        return null;
-    }
-
     const addImage = useCallback(() => {
-        fileInputRef.current?.click();
+        fileInputRef?.current?.click();
     }, []);
 
     const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +144,10 @@ const MenuBar = ({ editor }: { editor: any }) => {
         editor.chain().focus().extendMarkRange('link').unsetLink().run();
         setIsLinkOpen(false);
     }, [editor]);
+
+    if (!editor) {
+        return null;
+    }
 
     return (
         <div className="border-b border-border bg-secondary/50 p-2 flex flex-wrap gap-1 sticky top-0 z-10">
