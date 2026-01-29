@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Category, CategoryType } from './types';
 import { useRequest } from '@/hooks/use-request';
 import { APIS } from '@/api/const';
+import { useToast } from '@/hooks/use-toast';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,6 +20,8 @@ export default function CategoryPage() {
   const [totalItems, setTotalItems] = useState<number>(0);
 
   const { request, data: categoriesData } = useRequest();
+  const { request: deleteRequest, data: deleteData } = useRequest({ hideToast: false });
+  const { toast } = useToast();
 
   useEffect(() => {
     if (categoriesData) {
@@ -29,12 +32,32 @@ export default function CategoryPage() {
   }, [categoriesData])
 
   useEffect(() => {
+    if (deleteData) {
+      toast({
+        title: 'Success',
+        description: 'Category deleted successfully',
+      });
+      setDeleteId(null);
+      // Refresh list
+      request(
+        APIS.CATEGORY.LIST({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          q: searchTerm,
+          type: typeFilter === 'all' ? undefined : typeFilter
+        }),
+        { method: 'GET' }
+      );
+    }
+  }, [deleteData]);
+
+  useEffect(() => {
     request(
       APIS.CATEGORY.LIST({
         page: currentPage,
         limit: ITEMS_PER_PAGE,
         q: searchTerm,
-        type: typeFilter
+        type: typeFilter === 'all' ? undefined : typeFilter
       }),
       {
         method: 'GET'
@@ -42,9 +65,8 @@ export default function CategoryPage() {
     )
   }, [currentPage, searchTerm, typeFilter]);
 
-  const handleDelete = (id: number) => {
-    console.log('[v0] Deleting category:', id);
-    setDeleteId(null);
+  const handleDelete = async (id: number) => {
+    await deleteRequest(APIS.CATEGORY.DELETE(id), { method: 'DELETE' });
   };
 
   return (
@@ -101,33 +123,38 @@ export default function CategoryPage() {
           <table className="w-full">
             <thead className="bg-secondary border-b border-border sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">Name</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">Image</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">English Name</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">Vietnamese Name</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">Type</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground">Status</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-secondary-foreground">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {categories.length > 0 ? (
+              {categories?.length > 0 ? (
                 categories.map((category) => (
                   <tr key={category.id} className="hover:bg-secondary/50 transition-colors">
                     <td className="px-6 py-4">
+                      {category.img_url ? (
+                        <img crossOrigin={'anonymous'} src={APIS.IMAGE.MEDIUM(category.img_url)} alt={category.name_en} className="w-8 h-8 rounded-md object-cover border border-border" />
+                      ) :
+                        <img src='/dummy.png' alt={category.name_en} className="w-8 h-8 rounded-md object-cover border border-border" />}
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        {category.img_url && (
-                          <img src={category.img_url} alt={category.name} className="w-8 h-8 rounded-md object-cover border border-border" />
-                        )}
-                        <span className="text-foreground">{category.name}</span>
+                        <span className="text-foreground">{category.name_en}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-foreground">{category.name_vi}</span>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-sm capitalize">{category.type}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${category.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                          }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-green-800 bg-gray-100`}
                       >
-                        {category.status === 'active' ? '✓ Active' : '○ Inactive'}
+                        ✓ Active
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -152,7 +179,7 @@ export default function CategoryPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                     No categories found
                   </td>
                 </tr>

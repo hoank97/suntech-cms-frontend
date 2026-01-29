@@ -5,7 +5,8 @@ export enum CategoryType {
 
 export interface Category {
     id: number;
-    name: string;
+    name_en: string;
+    name_vi: string;
     img_url?: string;
     parent_id?: number | null;
     type: CategoryType;

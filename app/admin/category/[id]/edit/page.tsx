@@ -1,47 +1,36 @@
 'use client';
 
-import React, { useEffect, useRef } from "react"
-
-import { useState } from 'react';
+import React, { useEffect, useRef, useState, use } from "react";
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import Link from 'next/link';
-import { CategoryType } from '../types';
+import { Category, CategoryType } from '../../types';
 import { useRequest } from "@/hooks/use-request";
 import { APIS } from "@/api/const";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CreateCategoryPage() {
+export default function UpdateCategoryPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const [uploadImage, setUploadImage] = useState<any>(null);
+    const [uploadImage, setUploadImage] = useState<File | null>(null);
     const { toast } = useToast();
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { request: createCategoryRequest, data: createCategoryData, loading } = useRequest({ hideToast: false });
+    // Request hooks
+    const { request: getCategory, data: categoryData } = useRequest({ hideToast: true });
     const { request: getAllCategories, data: allCategoriesData } = useRequest({ hideToast: true });
+    const { request: updateCategory, data: updateData, loading: updateLoading } = useRequest({ hideToast: false });
 
+    // Initial Data Fetch
     useEffect(() => {
-        getAllCategories(APIS.CATEGORY.GET_ALL(), { method: 'GET' });
-    }, []);
-
-    useEffect(() => {
-        if (createCategoryData) {
-            toast({
-                title: 'Success',
-                description: 'Category created successfully',
-                variant: 'default',
-            });
-
-            const timeoutCloseToast = setTimeout(() => {
-                router.push('/admin/category');
-            }, 2000);
-
-            return () => clearTimeout(timeoutCloseToast);
+        if (id) {
+            getCategory(APIS.CATEGORY.DETAIL(id), { method: 'GET' });
+            getAllCategories(APIS.CATEGORY.GET_ALL(), { method: 'GET' });
         }
-    }, [createCategoryData]);
+    }, [id]);
 
     const [formData, setFormData] = useState({
         name_en: '',
@@ -50,6 +39,42 @@ export default function CreateCategoryPage() {
         parent_id: '' as string | number | null,
         type: CategoryType.PRODUCT,
     });
+
+    // Populate form when data is fetched
+    useEffect(() => {
+        if (categoryData) {
+            const cat = categoryData.data || categoryData;
+            if (cat) {
+                setFormData({
+                    name_en: cat.name_en || '',
+                    name_vi: cat.name_vi || '',
+                    img_url: cat.img_url || '',
+                    parent_id: cat.parent_id || null,
+                    type: cat.type || CategoryType.PRODUCT,
+                });
+                if (cat.img_url) {
+                    setPreviewImage(APIS.IMAGE.MEDIUM(cat.img_url));
+                }
+            }
+        }
+    }, [categoryData]);
+
+    // Handle Update Success
+    useEffect(() => {
+        if (updateData) {
+            toast({
+                title: 'Success',
+                description: 'Category updated successfully',
+                variant: 'default',
+            });
+
+            const timeoutCloseToast = setTimeout(() => {
+                router.push('/admin/category');
+            }, 1000); // Faster redirect
+
+            return () => clearTimeout(timeoutCloseToast);
+        }
+    }, [updateData]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -76,35 +101,56 @@ export default function CreateCategoryPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Step 1: Upload image
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', uploadImage);
+        let finalImageUrl = formData.img_url;
 
-        const token = localStorage.getItem('suntech-x-atk');
+        // Step 1: Upload new image if selected
+        if (uploadImage) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', uploadImage);
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
-            method: 'POST',
-            body: uploadFormData,
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        })
+            const token = localStorage.getItem('suntech-x-atk');
 
-        if (response.ok) {
-            const imageUrl = await response.json();
-            // Step 2: Create category 
-            await createCategoryRequest(
-                APIS.CATEGORY.CREATE(),
-                {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
                     method: 'POST',
-                    body: {
-                        ...formData,
-                        img_url: imageUrl.id,
-                        parent_id: formData.parent_id ? Number(formData.parent_id) : null,
-                    },
+                    body: uploadFormData,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                });
+
+                if (response.ok) {
+                    const imageData = await response.json();
+                    finalImageUrl = imageData.id;
+                } else {
+                    toast({
+                        title: 'Error',
+                        description: 'Failed to upload image',
+                        variant: 'destructive',
+                    });
+                    setIsLoading(false);
+                    return;
                 }
-            )
+            } catch (error) {
+                console.error('Upload error:', error);
+                setIsLoading(false);
+                return;
+            }
         }
+
+        // Step 2: Update category
+        await updateCategory(
+            APIS.CATEGORY.UPDATE(id),
+            {
+                method: 'PATCH',
+                body: {
+                    ...formData,
+                    img_url: finalImageUrl,
+                    parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+                },
+            }
+        );
+        setIsLoading(false);
     };
 
     return (
@@ -118,8 +164,8 @@ export default function CreateCategoryPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground">Create New Category</h1>
-                    <p className="text-muted-foreground mt-1">Add a new category to your system</p>
+                    <h1 className="text-3xl font-bold text-foreground">Edit Category</h1>
+                    <p className="text-muted-foreground mt-1">Update category details</p>
                 </div>
             </div>
 
@@ -192,7 +238,8 @@ export default function CreateCategoryPage() {
                                 ? (Array.isArray(allCategoriesData.data || allCategoriesData)
                                     ? (allCategoriesData.data || allCategoriesData)
                                     : [])
-                                    .map((cat: any) => (
+                                    .filter((cat: Category) => cat.id !== Number(id))
+                                    .map((cat: Category) => (
                                         <option key={cat.id} value={cat.id}>
                                             {cat.name_en}
                                         </option>
@@ -224,12 +271,13 @@ export default function CreateCategoryPage() {
                         </div>
                         {previewImage && (
                             <div className="w-40 h-40 bg-secondary rounded-md overflow-hidden flex items-center justify-center relative border border-border">
-                                <img src={previewImage || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+                                <img crossOrigin="anonymous" src={previewImage} alt="Preview" className="w-full h-full object-cover" />
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setPreviewImage(null);
                                         setUploadImage(null);
+                                        setFormData((prev) => ({ ...prev, img_url: '' }));
                                         if (fileInputRef.current) {
                                             fileInputRef.current.value = '';
                                         }
@@ -253,10 +301,10 @@ export default function CreateCategoryPage() {
                     </Link>
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={updateLoading || isLoading}
                         className="px-6 py-2 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-accent-foreground rounded-md transition-colors font-medium"
                     >
-                        {loading ? 'Creating...' : 'Create Category'}
+                        {updateLoading || isLoading ? 'Updating...' : 'Update Category'}
                     </button>
                 </div>
             </form>
