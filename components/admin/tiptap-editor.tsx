@@ -10,6 +10,9 @@ import TextAlign from '@tiptap/extension-text-align';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
+import { Plugin, PluginKey } from 'prosemirror-state';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import { Node } from '@tiptap/core';
 
 import {
     Bold,
@@ -44,7 +47,7 @@ import {
     Eye,
     EyeOff,
 } from 'lucide-react';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TipTapEditorProps {
@@ -58,8 +61,15 @@ const MenuBar = ({ editor }: { editor: any }) => {
     const isTableActive = editor && (editor.isActive('table') || editor.can().deleteTable());
     const [isLinkOpen, setIsLinkOpen] = useState(false);
     const [isColorOpen, setIsColorOpen] = useState(false);
+    const [isHrColorOpen, setIsHrColorOpen] = useState(false);
     const [linkUrl, setLinkUrl] = useState('');
     const [linkText, setLinkText] = useState('');
+    const [hrSettings, setHrSettings] = useState({
+        color: '#e0e0e0',
+        width: '100%',
+        height: '2px',
+        alignment: 'center',
+    });
 
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +167,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     }
 
     return (
+        <>
         <div className="border-b border-border bg-secondary/50 p-2 flex flex-wrap gap-1 sticky top-0 z-10">
             <input
                 type="file"
@@ -460,128 +471,15 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 >
                     <TableIcon className="w-4 h-4" />
                 </button>
-                <div className="relative group">
-                    <button
-                        className="p-2 rounded hover:bg-background transition-colors text-muted-foreground flex items-center gap-1 disabled:opacity-50"
-                        title="Table Operations"
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        disabled={!isTableActive}
-                    >
-                        <TableIcon className="w-4 h-4" />
-                        <ChevronDown className="w-3 h-3" />
-                    </button>
-                    {isTableActive && (
-                        <div className="absolute top-full left-0 hidden group-hover:block z-50 w-48 pt-1">
-                            <div className="bg-popover border border-border rounded shadow-md p-1">
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Plus className="w-3 h-3" /> Col Before
-                                </button>
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Plus className="w-3 h-3" /> Col After
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        if (!editor.chain().focus().deleteColumn().run()) {
-                                            editor.chain().focus().deleteTable().run();
-                                        }
-                                    }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm text-destructive disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Trash2 className="w-3 h-3" /> Delete Col
-                                </button>
-                                <div className="h-px bg-border my-1" />
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Plus className="w-3 h-3" /> Row Before
-                                </button>
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Plus className="w-3 h-3" /> Row After
-                                </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        if (!editor.chain().focus().deleteRow().run()) {
-                                            editor.chain().focus().deleteTable().run();
-                                        }
-                                    }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm text-destructive disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Trash2 className="w-3 h-3" /> Delete Row
-                                </button>
-                                <div className="h-px bg-border my-1" />
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().mergeCells().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!editor.can().mergeCells()}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Merge className="w-3 h-3" /> Merge Cells
-                                </button>
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().splitCell().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!editor.can().splitCell()}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Split className="w-3 h-3" /> Split Cell
-                                </button>
-                                <button
-                                    onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm text-destructive disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    <Trash2 className="w-3 h-3" /> Delete Table
-                                </button>
-                                <div className="h-px bg-border my-1" />
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        const isNoBorder = editor.getAttributes('table').noBorder;
-                                        editor.chain().focus().updateAttributes('table', { noBorder: !isNoBorder }).run();
-                                    }}
-                                    className="flex items-center gap-2 w-full text-left px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-sm disabled:opacity-50"
-                                    disabled={!isTableActive}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    {editor.getAttributes('table').noBorder ? <><Eye className="w-3 h-3" /> Show Border</> : <><EyeOff className="w-3 h-3" /> Hide Border</>}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
             </div>
 
             <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
                 <button
-                    onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                    onClick={() => {
+                        editor.chain().focus().setHorizontalRule(hrSettings).run();
+                    }}
                     className="p-2 rounded hover:bg-background transition-colors text-muted-foreground"
-                    title="Horizontal Rule"
+                    title="Insert Horizontal Rule"
                     type="button"
                 >
                     <Minus className="w-4 h-4" />
@@ -631,15 +529,336 @@ const MenuBar = ({ editor }: { editor: any }) => {
                 </button>
             </div>
         </div>
+        
+        {/* Table Operations Toolbar - Only show when table is active */}
+        {isTableActive && (
+            <div className="border-b border-border bg-secondary/30 px-2 py-1.5 flex flex-wrap gap-1">
+                <span className="text-xs font-medium text-muted-foreground self-center mr-2">Table:</span>
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    + Col Before
+                </button>
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    + Col After
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        if (!editor.chain().focus().deleteColumn().run()) {
+                            editor.chain().focus().deleteTable().run();
+                        }
+                    }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    Delete Col
+                </button>
+                <div className="w-px h-4 bg-border self-center mx-1" />
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    + Row Before
+                </button>
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    + Row After
+                </button>
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        if (!editor.chain().focus().deleteRow().run()) {
+                            editor.chain().focus().deleteTable().run();
+                        }
+                    }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    Delete Row
+                </button>
+                <div className="w-px h-4 bg-border self-center mx-1" />
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().mergeCells().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!editor.can().mergeCells()}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    Merge Cells
+                </button>
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().splitCell().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                    disabled={!editor.can().splitCell()}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    Split Cell
+                </button>
+                <button
+                    onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    Delete Table
+                </button>
+                <div className="w-px h-4 bg-border self-center mx-1" />
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        const currentNoBorder = editor.getAttributes('table').noBorder;
+                        editor.chain().focus().updateAttributes('table', { noBorder: !currentNoBorder }).run();
+                    }}
+                    className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50 flex items-center gap-1"
+                    disabled={!isTableActive}
+                    onMouseDown={(e) => e.preventDefault()}
+                >
+                    {editor.getAttributes('table').noBorder ? <><Eye className="w-3 h-3" /> Show Border</> : <><EyeOff className="w-3 h-3" /> Hide Border</>}
+                </button>
+            </div>
+        )}
+        
+        {/* HR Settings Toolbar - Always visible for easy access */}
+        <div className="border-b border-border bg-secondary/20 px-2 py-1.5 flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-medium text-muted-foreground">Line:</span>
+            
+            {/* Color swatches */}
+            <div className="flex gap-1 items-center">
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#086799' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#086799' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#086799' }} title="Project Blue" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#f37440' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#f37440' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#f37440' }} title="Project Orange" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#000000' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#000000' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#000000' }} title="Black" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#4b5563' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#4b5563' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#4b5563' }} title="Gray" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#dc2626' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#dc2626' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#dc2626' }} title="Red" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#2563eb' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#2563eb' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#2563eb' }} title="Blue" type="button" />
+                <button onClick={() => setHrSettings(prev => ({ ...prev, color: '#16a34a' }))} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#16a34a' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#16a34a' }} title="Green" type="button" />
+                <input type="color" value={hrSettings.color} onChange={(e) => setHrSettings(prev => ({ ...prev, color: e.target.value }))} className="w-5 h-5 cursor-pointer rounded border border-border" title="Custom color" />
+            </div>
+            
+            <div className="w-px h-4 bg-border" />
+            
+            {/* Width */}
+            <span className="text-xs text-muted-foreground">W:</span>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, width: '30px' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '30px' && 'bg-accent')} type="button">30px</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, width: '25%' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '25%' && 'bg-accent')} type="button">25%</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, width: '50%' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '50%' && 'bg-accent')} type="button">50%</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, width: '75%' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '75%' && 'bg-accent')} type="button">75%</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, width: '100%' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '100%' && 'bg-accent')} type="button">100%</button>
+            
+            <div className="w-px h-4 bg-border" />
+            
+            {/* Height */}
+            <span className="text-xs text-muted-foreground">H:</span>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, height: '1px' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '1px' && 'bg-accent')} type="button">1px</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, height: '2px' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '2px' && 'bg-accent')} type="button">2px</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, height: '3px' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '3px' && 'bg-accent')} type="button">3px</button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, height: '5px' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '5px' && 'bg-accent')} type="button">5px</button>
+            
+            <div className="w-px h-4 bg-border" />
+            
+            {/* Alignment */}
+            <button onClick={() => setHrSettings(prev => ({ ...prev, alignment: 'left' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'left' && 'bg-accent')} type="button" title="Align Left">
+                <AlignLeft className="w-3 h-3" />
+            </button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, alignment: 'center' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'center' && 'bg-accent')} type="button" title="Align Center">
+                <AlignCenter className="w-3 h-3" />
+            </button>
+            <button onClick={() => setHrSettings(prev => ({ ...prev, alignment: 'right' }))} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'right' && 'bg-accent')} type="button" title="Align Right">
+                <AlignRight className="w-3 h-3" />
+            </button>
+        </div>
+        </>
     );
 };
+
+const CustomHorizontalRule = Node.create({
+    name: 'horizontalRule',
+    
+    group: 'block',
+    
+    parseHTML() {
+        return [
+            { tag: 'hr' },
+            { tag: 'div.custom-hr' },
+        ];
+    },
+    
+    addAttributes() {
+        return {
+            color: {
+                default: '#e0e0e0',
+                parseHTML: element => element.getAttribute('data-color') || '#e0e0e0',
+                renderHTML: attributes => {
+                    return {
+                        'data-color': attributes.color,
+                    };
+                },
+            },
+            width: {
+                default: '100%',
+                parseHTML: element => element.getAttribute('data-width') || '100%',
+                renderHTML: attributes => {
+                    return {
+                        'data-width': attributes.width,
+                    };
+                },
+            },
+            height: {
+                default: '2px',
+                parseHTML: element => element.getAttribute('data-height') || '2px',
+                renderHTML: attributes => {
+                    return {
+                        'data-height': attributes.height,
+                    };
+                },
+            },
+            alignment: {
+                default: 'center',
+                parseHTML: element => element.getAttribute('data-alignment') || 'center',
+                renderHTML: attributes => {
+                    return {
+                        'data-alignment': attributes.alignment,
+                    };
+                },
+            },
+        };
+    },
+    
+    renderHTML({ node, HTMLAttributes }) {
+        console.log('renderHTML called with node.attrs:', node?.attrs, 'HTMLAttributes:', HTMLAttributes);
+        
+        const color = node?.attrs?.color || HTMLAttributes?.color || '#e0e0e0';
+        const width = node?.attrs?.width || HTMLAttributes?.width || '100%';
+        const height = node?.attrs?.height || HTMLAttributes?.height || '2px';
+        const alignment = node?.attrs?.alignment || HTMLAttributes?.alignment || 'center';
+        
+        let marginStyle = 'margin-left: 0; margin-right: auto;';
+        if (alignment === 'center') {
+            marginStyle = 'margin-left: auto; margin-right: auto;';
+        } else if (alignment === 'right') {
+            marginStyle = 'margin-left: auto; margin-right: 0;';
+        }
+        
+        console.log('Rendering with:', { color, width, height, alignment });
+        
+        return [
+            'div',
+            {
+                class: 'custom-hr',
+                'data-color': color,
+                'data-width': width,
+                'data-height': height,
+                'data-alignment': alignment,
+                style: `border-top: ${height} solid ${color}; width: ${width}; ${marginStyle} margin-top: 1.5em; margin-bottom: 1.5em;`,
+            },
+        ];
+    },
+    
+    addCommands() {
+        return {
+            setHorizontalRule: (attributes?: any) => ({ chain }: any) => {
+                return chain()
+                    .insertContent({
+                        type: this.name,
+                        attrs: attributes || {},
+                    })
+                    .run();
+            },
+        };
+    },
+});
+
+const CustomTable = Table.extend({
+    addAttributes() {
+        const parentAttrs = this.parent?.() || {};
+        
+        return {
+            ...parentAttrs,
+            noBorder: {
+                default: false,
+                parseHTML: element => {
+                    return element.hasAttribute('data-no-border') || element.classList.contains('no-border');
+                },
+                renderHTML: attributes => {
+                    if (!attributes.noBorder) {
+                        return {};
+                    }
+                    return {
+                        'data-no-border': 'true',
+                        class: 'no-border',
+                    };
+                },
+            },
+        };
+    },
+    
+    addProseMirrorPlugins() {
+        return [
+            ...(this.parent?.() || []),
+            new Plugin({
+                key: new PluginKey('tableBorderToggle'),
+                view: () => ({
+                    update: (view) => {
+                        // Find all table nodes and update their DOM
+                        view.state.doc.descendants((node, pos) => {
+                            if (node.type.name === 'table') {
+                                const noBorder = node.attrs.noBorder;
+                                
+                                // Get the DOM node for this position
+                                const domAtPos = view.domAtPos(pos + 1);
+                                let tableElement: HTMLElement | null = domAtPos.node as HTMLElement;
+                                
+                                // Find the actual table element
+                                if (tableElement && tableElement.nodeType === 3) { // 3 = TEXT_NODE
+                                    tableElement = tableElement.parentElement;
+                                }
+                                
+                                // Traverse up to find the table
+                                while (tableElement && tableElement.tagName !== 'TABLE') {
+                                    tableElement = tableElement.parentElement;
+                                }
+                                
+                                if (tableElement && tableElement.tagName === 'TABLE') {
+                                    if (noBorder) {
+                                        tableElement.classList.add('no-border');
+                                        tableElement.setAttribute('data-no-border', 'true');
+                                    } else {
+                                        tableElement.classList.remove('no-border');
+                                        tableElement.removeAttribute('data-no-border');
+                                    }
+                                }
+                            }
+                        });
+                    },
+                }),
+            }),
+        ];
+    },
+});
 
 export function TipTapEditor({ value, onChange, placeholder, className }: TipTapEditorProps) {
     const [, forceUpdate] = useState(0);
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                horizontalRule: false,
+            }),
             Placeholder.configure({
                 placeholder: placeholder || 'Write something...',
             }),
@@ -651,21 +870,8 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
             TextAlign.configure({
                 types: ['heading', 'paragraph'],
             }),
-            Table.extend({
-                addAttributes() {
-                    return {
-                        noBorder: {
-                            default: false,
-                            parseHTML: element => element.classList.contains('no-border'),
-                            renderHTML: attributes => {
-                                return {
-                                    class: attributes.noBorder ? 'no-border' : '',
-                                }
-                            },
-                        },
-                    };
-                },
-            }).configure({
+            CustomHorizontalRule,
+            CustomTable.configure({
                 resizable: true,
             }),
             TableRow,
@@ -719,12 +925,24 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
           box-sizing: border-box;
           position: relative;
         }
+        /* No border styles - high specificity to override everything */
+        .ProseMirror table[data-no-border="true"],
         .ProseMirror table.no-border {
-            border: 1px dashed #e5e7eb !important;
+            border: none !important;
+            border-collapse: collapse !important;
         }
-        .ProseMirror table.no-border > tbody > tr > td,
-        .ProseMirror table.no-border > tbody > tr > th {
+        .ProseMirror table[data-no-border="true"] td,
+        .ProseMirror table[data-no-border="true"] th,
+        .ProseMirror table.no-border td,
+        .ProseMirror table.no-border th {
             border: 1px dashed #e5e7eb !important;
+            border-collapse: collapse !important;
+        }
+        /* Ensure header cells also get the dashed border */
+        .ProseMirror table[data-no-border="true"] thead th,
+        .ProseMirror table.no-border thead th {
+            border: 1px dashed #e5e7eb !important;
+            background-color: transparent !important;
         }
         .ProseMirror th {
           font-weight: bold;
@@ -738,6 +956,14 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
           left: 0; right: 0; top: 0; bottom: 0;
           background: rgba(200, 200, 255, 0.4);
           pointer-events: none;
+        }
+        .ProseMirror .custom-hr {
+          display: block;
+          height: 0;
+          cursor: pointer;
+        }
+        .ProseMirror .custom-hr:hover {
+          opacity: 0.7;
         }
         .ProseMirror ul {
             list-style-type: disc;
