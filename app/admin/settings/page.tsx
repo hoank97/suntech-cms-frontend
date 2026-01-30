@@ -63,10 +63,10 @@ export default function SettingsPage() {
     await changePasswordRequest(
       APIS.AUTH.CHANGE_PASSWORD(),
       {
-        method: 'POST',
+        method: 'PATCH',
         body: {
-          old_password: formData.oldPassword,
-          new_password: formData.newPassword
+          oldPassword: formData.oldPassword,
+          newPassword: formData.newPassword
         }
       }
     );

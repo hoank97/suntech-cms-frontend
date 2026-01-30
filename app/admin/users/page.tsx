@@ -5,19 +5,31 @@ import { useRequest } from "@/hooks/use-request";
 import { APIS } from "@/api/const";
 import { User } from "./types";
 
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 10;
+
 export default function UsersPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+
   const { request: getUsers, data: usersData, loading } = useRequest({ hideToast: true });
   const [users, setUsers] = useState<User[]>([]);
 
+  const fetchUsers = () => {
+    getUsers(APIS.USER.LIST({ page: currentPage, limit: ITEMS_PER_PAGE, q: searchTerm }), { method: 'GET' });
+  };
+
   useEffect(() => {
-    getUsers(APIS.USER.LIST(), { method: 'GET' });
-  }, []);
+    fetchUsers();
+  }, [currentPage, searchTerm]);
 
   useEffect(() => {
     if (usersData) {
-      // Handle array directly or data property
       const list = Array.isArray(usersData) ? usersData : (usersData.data || []);
       setUsers(list);
+      setTotalPages(usersData.totalPages || Math.ceil((usersData.total || list.length) / ITEMS_PER_PAGE) || 0);
     }
   }, [usersData]);
 
@@ -38,6 +50,25 @@ export default function UsersPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">User Management</h1>
         <p className="text-muted-foreground mt-1">View list of all users in the system</p>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-card p-4 rounded-md border border-border space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Table */}
@@ -73,7 +104,7 @@ export default function UsersPage() {
                           />
                         ) : (
                           <span className="text-xs font-semibold text-muted-foreground">
-                            {user.fullName.charAt(0).toUpperCase()}
+                            {user.fullName?.charAt(0).toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -104,6 +135,40 @@ export default function UsersPage() {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="p-2 rounded-md border border-border hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-md text-sm ${currentPage === page
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border hover:bg-secondary'
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 rounded-md border border-border hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,11 +1,11 @@
 export const APIS = {
     AUTH: {
         LOGIN: () => `api/v1/login`,
-        CHANGE_PASSWORD: () => `api/v1/auth/change-password`,
+        CHANGE_PASSWORD: () => `api/v1/user/change-password`,
     },
     USER: {
         PROFILE: () => `api/v1/profile`,
-        LIST: () => `users`,
+        LIST: (options: { page: number, limit: number, q?: string }) => `api/v1/users?page=${options.page}&limit=${options.limit}&q=${options.q || ''}`,
     },
     CATEGORY: {
         LIST: (options: { page: number, limit: number, q?: string, type?: string }) => `category/list?page=${options.page}&limit=${options.limit}&q=${options.q}&type=${options.type ?? ''}`,
