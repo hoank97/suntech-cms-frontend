@@ -1169,6 +1169,13 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
         immediatelyRender: false
     });
 
+    // Update editor content when value prop changes
+    useEffect(() => {
+        if (editor && value && editor.getHTML() !== value) {
+            editor.commands.setContent(value);
+        }
+    }, [editor, value]);
+
     return (
         <div className="border border-border rounded-md overflow-hidden bg-card text-card-foreground shadow-sm">
             <style jsx global>{`

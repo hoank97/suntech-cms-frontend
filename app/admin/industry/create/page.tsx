@@ -1,31 +1,63 @@
 'use client';
 
-import React from "react"
-
-import { useState } from 'react';
+import React, { useEffect, useRef, useState } from "react"
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import { TipTapEditor } from '@/components/admin/tiptap-editor';
+import { useRequest } from "@/hooks/use-request";
+import { APIS } from "@/api/const";
+import { useToast } from "@/hooks/use-toast";
+import { Industry } from "../types";
 
 export default function CreateIndustryPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [uploadImage, setUploadImage] = useState<any>(null);
+  const { toast } = useToast();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { request: createIndustryRequest, data: createIndustryData, loading } = useRequest({ hideToast: false });
+  const { request: getAllIndustries, data: allIndustriesData } = useRequest({ hideToast: true });
+
+  useEffect(() => {
+    getAllIndustries(APIS.INDUSTRY.GET_ALL(), { method: 'GET' });
+  }, []);
+
+  useEffect(() => {
+    if (createIndustryData) {
+      toast({
+        title: 'Success',
+        description: 'Industry created successfully',
+        variant: 'default',
+      });
+
+      const timeoutCloseToast = setTimeout(() => {
+        router.push('/admin/industry');
+      }, 2000);
+
+      return () => clearTimeout(timeoutCloseToast);
+    }
+  }, [createIndustryData]);
 
   const [formData, setFormData] = useState({
-    name: '',
-    slug: '',
+    name_en: '',
+    name_vi: '',
     image_url: '',
-    introduction: '',
+    introduction_en: '',
+    introduction_vi: '',
+    applications_en: [] as string[],
+    applications_vi: [] as string[],
     solution_link: '',
-    applications: [] as string[],
-    parent_id: '',
+    parent_id: '' as string | number | null,
   });
 
-  const [newApplication, setNewApplication] = useState('');
+  const [newAppEn, setNewAppEn] = useState('');
+  const [newAppVi, setNewAppVi] = useState('');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -40,29 +72,29 @@ export default function CreateIndustryPage() {
       reader.onload = (event) => {
         const result = event.target?.result as string;
         setPreviewImage(result);
-        setFormData((prev) => ({
-          ...prev,
-          image_url: result,
-        }));
+        setUploadImage(file);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleAddApplication = () => {
-    if (newApplication.trim()) {
+    if (newAppEn.trim() && newAppVi.trim()) {
       setFormData((prev) => ({
         ...prev,
-        applications: [...prev.applications, newApplication.trim()],
+        applications_en: [...prev.applications_en, newAppEn.trim()],
+        applications_vi: [...prev.applications_vi, newAppVi.trim()],
       }));
-      setNewApplication('');
+      setNewAppEn('');
+      setNewAppVi('');
     }
   };
 
   const handleRemoveApplication = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      applications: prev.applications.filter((_, i) => i !== index),
+      applications_en: prev.applications_en.filter((_, i) => i !== index),
+      applications_vi: prev.applications_vi.filter((_, i) => i !== index),
     }));
   };
 
@@ -70,13 +102,61 @@ export default function CreateIndustryPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('[v0] Submitting industry:', formData);
+    let imageUrl = formData.image_url;
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push('/admin/industry');
-    }, 1000);
+    // Step 1: Upload image
+    if (uploadImage) {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', uploadImage);
+
+      const token = localStorage.getItem('suntech-x-atk');
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
+          method: 'POST',
+          body: uploadFormData,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          imageUrl = data.id;
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to upload image',
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: 'Error',
+          description: 'Error uploading image',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Step 2: Create Industry
+    await createIndustryRequest(
+      APIS.INDUSTRY.CREATE(),
+      {
+        method: 'POST',
+        body: {
+          ...formData,
+          image_url: imageUrl,
+          parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+        },
+      }
+    );
+    setIsLoading(false);
   };
 
   return (
@@ -91,23 +171,23 @@ export default function CreateIndustryPage() {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-foreground">Create New Industry</h1>
-          <p className="text-muted-foreground mt-1">Add a new industry category to your system</p>
+          <p className="text-muted-foreground mt-1">Add a new industry to your system</p>
         </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-card rounded-md border border-border p-6 space-y-6">
-        {/* Name & Slug */}
+        {/* Names */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-2">
-              Industry Name <span className="text-destructive">*</span>
+            <label htmlFor="name_en" className="block text-sm font-semibold text-foreground mb-2">
+              Industry Name (EN) <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="name_en"
+              name="name_en"
+              value={formData.name_en}
               onChange={handleInputChange}
               placeholder="e.g., Technology"
               required
@@ -115,20 +195,61 @@ export default function CreateIndustryPage() {
             />
           </div>
           <div>
-            <label htmlFor="slug" className="block text-sm font-semibold text-foreground mb-2">
-              Slug <span className="text-destructive">*</span>
+            <label htmlFor="name_vi" className="block text-sm font-semibold text-foreground mb-2">
+              Industry Name (VI) <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              id="slug"
-              name="slug"
-              value={formData.slug}
+              id="name_vi"
+              name="name_vi"
+              value={formData.name_vi}
               onChange={handleInputChange}
-              placeholder="e.g., technology"
+              placeholder="e.g., Công nghệ"
               required
               className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <p className="text-xs text-muted-foreground mt-1">URL-friendly identifier (lowercase, no spaces)</p>
+          </div>
+        </div>
+
+        {/* Parent & Link */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="parent_id" className="block text-sm font-semibold text-foreground mb-2">
+              Parent Industry (Optional)
+            </label>
+            <select
+              id="parent_id"
+              name="parent_id"
+              value={formData.parent_id || ''}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select a parent industry...</option>
+              {allIndustriesData && (allIndustriesData.data || allIndustriesData)
+                ? (Array.isArray(allIndustriesData.data || allIndustriesData)
+                  ? (allIndustriesData.data || allIndustriesData)
+                  : [])
+                  .map((ind: Industry) => (
+                    <option key={ind.id} value={ind.id}>
+                      {ind.name_en}
+                    </option>
+                  ))
+                : null}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="solution_link" className="block text-sm font-semibold text-foreground mb-2">
+              Solution Link
+            </label>
+            <input
+              type="url"
+              id="solution_link"
+              name="solution_link"
+              value={formData.solution_link}
+              onChange={handleInputChange}
+              placeholder="https://example.com"
+              className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
         </div>
 
@@ -138,31 +259,31 @@ export default function CreateIndustryPage() {
             Industry Image
           </label>
           <div className="flex gap-6">
-            <div className="flex-1">
-              <div className="relative border-2 border-dashed border-border rounded-md p-6 hover:bg-secondary/50 transition-colors cursor-pointer">
+            <div className="w-full md:w-1/2">
+              <div className="relative border-2 border-dashed border-border rounded-md p-6 hover:bg-secondary/50 transition-colors cursor-pointer text-center h-40 flex flex-col items-center justify-center">
                 <input
                   type="file"
+                  ref={fileInputRef}
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className="w-8 h-8 text-muted-foreground" />
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-foreground">Click to upload or drag and drop</p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
-                  </div>
-                </div>
+                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                <p className="text-sm font-medium text-foreground">Click/Drag to upload</p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
               </div>
             </div>
             {previewImage && (
-              <div className="w-40 h-40 bg-secondary rounded-md overflow-hidden flex items-center justify-center relative">
-                <img src={previewImage || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+              <div className="w-40 h-40 bg-secondary rounded-md overflow-hidden flex items-center justify-center relative border border-border">
+                <img src={previewImage || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" crossOrigin="anonymous" />
                 <button
                   type="button"
                   onClick={() => {
                     setPreviewImage(null);
-                    setFormData((prev) => ({ ...prev, image_url: '' }));
+                    setUploadImage(null);
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
                   }}
                   className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90"
                 >
@@ -173,80 +294,50 @@ export default function CreateIndustryPage() {
           </div>
         </div>
 
-        {/* Parent Industry */}
-        <div>
-          <label htmlFor="parent_id" className="block text-sm font-semibold text-foreground mb-2">
-            Parent Industry (Optional)
-          </label>
-          <select
-            id="parent_id"
-            name="parent_id"
-            value={formData.parent_id}
-            onChange={handleInputChange}
-            className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-            <option value="">Select a parent industry...</option>
-            <option value="1">Technology</option>
-            <option value="2">Healthcare</option>
-            <option value="3">Finance</option>
-          </select>
-        </div>
-
-        {/* Solution Link */}
-        <div>
-          <label htmlFor="solution_link" className="block text-sm font-semibold text-foreground mb-2">
-            Solution Link
-          </label>
-          <input
-            type="url"
-            id="solution_link"
-            name="solution_link"
-            value={formData.solution_link}
-            onChange={handleInputChange}
-            placeholder="https://example.com"
-            className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-
-        {/* Applications */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Applications
-          </label>
-          <div className="flex gap-2 mb-3">
-            <input
-              type="text"
-              value={newApplication}
-              onChange={(e) => setNewApplication(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddApplication();
-                }
-              }}
-              placeholder="Add an application..."
-              className="flex-1 px-4 py-2 border border-border rounded-md bg-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+        {/* Applications - MOVED UP */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">Applications</h3>
+          <div className="flex gap-4 items-end bg-secondary/30 p-4 rounded-md border border-border">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground mb-2">Application (EN)</label>
+              <input
+                type="text"
+                value={newAppEn}
+                onChange={(e) => setNewAppEn(e.target.value)}
+                placeholder="e.g., Web Development"
+                className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground mb-2">Application (VI)</label>
+              <input
+                type="text"
+                value={newAppVi}
+                onChange={(e) => setNewAppVi(e.target.value)}
+                placeholder="e.g., Lập trình Web"
+                className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
             <button
               type="button"
               onClick={handleAddApplication}
-              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md transition-colors"
+              disabled={!newAppEn.trim() || !newAppVi.trim()}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 disabled:bg-primary/50 text-white rounded-md transition-colors"
             >
               Add
             </button>
           </div>
-          {formData.applications.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formData.applications.map((app, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1 rounded-full"
-                >
-                  <span className="text-sm">{app}</span>
+
+          {formData.applications_en.length > 0 && (
+            <div className="grid gap-2">
+              {formData.applications_en.map((app, index) => (
+                <div key={index} className="flex items-center gap-4 bg-secondary p-3 rounded-md">
+                  <div className="flex-1 text-sm"><span className="font-semibold text-muted-foreground mr-2">EN:</span>{app}</div>
+                  <div className="flex-1 text-sm"><span className="font-semibold text-muted-foreground mr-2">VI:</span>{formData.applications_vi[index]}</div>
                   <button
                     type="button"
                     onClick={() => handleRemoveApplication(index)}
-                    className="hover:text-destructive"
+                    className="text-destructive hover:text-destructive/80 p-1"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -256,21 +347,27 @@ export default function CreateIndustryPage() {
           )}
         </div>
 
-        {/* Introduction - Rich Text Editor */}
-        <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Introduction
-          </label>
-          <TipTapEditor
-            value={formData.introduction}
-            onChange={(content) =>
-              setFormData((prev) => ({
-                ...prev,
-                introduction: content,
-              }))
-            }
-            placeholder="Write a detailed introduction about this industry..."
-          />
+        {/* Introduction - MOVED DOWN */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">Introduction</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Introduction (EN)</label>
+              <TipTapEditor
+                value={formData.introduction_en}
+                onChange={(content) => setFormData(p => ({ ...p, introduction_en: content }))}
+                placeholder="Introduction in English..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Introduction (VI)</label>
+              <TipTapEditor
+                value={formData.introduction_vi}
+                onChange={(content) => setFormData(p => ({ ...p, introduction_vi: content }))}
+                placeholder="Giới thiệu tiếng Việt..."
+              />
+            </div>
+          </div>
         </div>
 
         {/* Actions */}
@@ -283,10 +380,10 @@ export default function CreateIndustryPage() {
           </Link>
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={loading}
             className="px-6 py-2 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-accent-foreground rounded-md transition-colors font-medium"
           >
-            {isLoading ? 'Creating...' : 'Create Industry'}
+            {loading ? 'Creating...' : 'Create Industry'}
           </button>
         </div>
       </form>

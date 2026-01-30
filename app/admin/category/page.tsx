@@ -26,7 +26,7 @@ export default function CategoryPage() {
   useEffect(() => {
     if (categoriesData) {
       setCategory(categoriesData.data);
-      setTotalPage(categoriesData.totalPage);
+      setTotalPage(categoriesData.totalPages);
       setTotalItems(categoriesData.totalItems);
     }
   }, [categoriesData])
@@ -67,6 +67,11 @@ export default function CategoryPage() {
 
   const handleDelete = async (id: number) => {
     await deleteRequest(APIS.CATEGORY.DELETE(id), { method: 'DELETE' });
+    toast({
+      title: 'Success',
+      description: 'Category deleted successfully',
+    });
+    setDeleteId(null);
   };
 
   return (

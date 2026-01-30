@@ -76,35 +76,61 @@ export default function CreateCategoryPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Step 1: Upload image
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', uploadImage);
+        let imageUrl = formData.img_url;
 
-        const token = localStorage.getItem('suntech-x-atk');
+        // Step 1: Upload image if selected
+        if (uploadImage) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', uploadImage);
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
-            method: 'POST',
-            body: uploadFormData,
-            headers: {
-                Authorization: `Bearer ${token}`,
-            }
-        })
+            const token = localStorage.getItem('suntech-x-atk');
 
-        if (response.ok) {
-            const imageUrl = await response.json();
-            // Step 2: Create category 
-            await createCategoryRequest(
-                APIS.CATEGORY.CREATE(),
-                {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
                     method: 'POST',
-                    body: {
-                        ...formData,
-                        img_url: imageUrl.id,
-                        parent_id: formData.parent_id ? Number(formData.parent_id) : null,
-                    },
+                    body: uploadFormData,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    imageUrl = data.id;
+                } else {
+                    toast({
+                        title: 'Error',
+                        description: 'Failed to upload image',
+                        variant: 'destructive',
+                    });
+                    setIsLoading(false);
+                    return;
                 }
-            )
+            } catch (error) {
+                console.error('Upload error:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Error uploading image',
+                    variant: 'destructive',
+                });
+                setIsLoading(false);
+                return;
+            }
         }
+
+        // Step 2: Create category
+        await createCategoryRequest(
+            APIS.CATEGORY.CREATE(),
+            {
+                method: 'POST',
+                body: {
+                    ...formData,
+                    img_url: imageUrl,
+                    parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+                },
+            }
+        );
+        setIsLoading(false);
     };
 
     return (

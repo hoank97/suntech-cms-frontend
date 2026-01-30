@@ -78,9 +78,13 @@ export function useRequest<T = any>(options: { hideToast?: boolean } = {}): UseR
                 return;
             }
 
-            const responseData = await response.json();
-            setData(responseData);
-            return responseData;
+            try {
+                const responseData = await response.json();
+                setData(responseData);
+                return responseData;
+            } catch (err) {
+                return {};
+            }
 
         } catch (err: any) {
             const errorMessage = err?.message || 'Unknown error occurred';
