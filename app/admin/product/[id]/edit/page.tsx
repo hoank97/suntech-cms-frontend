@@ -57,13 +57,12 @@ export default function EditProductPage() {
         product_enquiry_link: '',
         applications_en: [] as string[],
         applications_vi: [] as string[],
-        download_links: [] as string[],
+        download_links: [] as { url: string; originalName: string; size: string }[],
         summary_en: '',
         summary_vi: '',
         description_en: '',
         description_vi: '',
         images: [] as string[],
-        thumbnail: '',
     });
 
     useEffect(() => {
@@ -85,7 +84,6 @@ export default function EditProductPage() {
                 description_en: data.description_en || '',
                 description_vi: data.description_vi || '',
                 images: Array.isArray(data.images) ? data.images : [],
-                thumbnail: data.thumbnail || '',
             });
         }
     }, [productData]);
@@ -97,10 +95,8 @@ export default function EditProductPage() {
 
     // Image handling
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const thumbInputRef = useRef<HTMLInputElement>(null);
     const docInputRef = useRef<HTMLInputElement>(null);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
-    const [isUploadingThumb, setIsUploadingThumb] = useState(false);
     const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -142,7 +138,7 @@ export default function EditProductPage() {
             uploadFormData.append('file', file);
 
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD_DOCUMENT()}`, {
                     method: 'POST',
                     body: uploadFormData,
                     headers: {
@@ -154,7 +150,11 @@ export default function EditProductPage() {
                     const data = await response.json();
                     setFormData(prev => ({
                         ...prev,
-                        download_links: [...prev.download_links, data.id]
+                        download_links: [...prev.download_links, {
+                            url: data.url,
+                            originalName: data.originalName,
+                            size: data.size
+                        }]
                     }));
                 } else {
                     toast({ title: 'Error', description: `Failed to upload ${file.name}`, variant: 'destructive' });
@@ -238,41 +238,7 @@ export default function EditProductPage() {
         }));
     };
 
-    const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        setIsUploadingThumb(true);
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
-
-        try {
-            const token = localStorage.getItem('suntech-x-atk');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
-                method: 'POST',
-                body: uploadFormData,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setFormData(prev => ({
-                    ...prev,
-                    thumbnail: data.id
-                }));
-            } else {
-                toast({ title: 'Error', description: 'Failed to upload thumbnail', variant: 'destructive' });
-            }
-        } catch (error) {
-            console.error(error);
-            toast({ title: 'Error', description: 'Error uploading thumbnail', variant: 'destructive' });
-        } finally {
-            setIsUploadingThumb(false);
-            if (thumbInputRef.current) thumbInputRef.current.value = '';
-        }
-    };
 
     // --- Submit ---
     const handleSubmit = async (e: React.FormEvent) => {
@@ -453,7 +419,7 @@ export default function EditProductPage() {
                     <ul className="space-y-1">
                         {formData.download_links.map((link, idx) => (
                             <li key={idx} className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
-                                <span className="truncate flex-1">{link}</span>
+                                <span className="truncate flex-1">{link.originalName} ({link.size})</span>
                                 <button type="button" onClick={() => handleRemoveDownloadLink(idx)} className="text-destructive hover:text-destructive/80">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -505,57 +471,9 @@ export default function EditProductPage() {
                     </div>
                 )}
 
-                {/* Images & Thumbnail */}
+                {/* Images */}
                 <h3 className="text-lg font-semibold text-foreground border-b pb-2 pt-4">Images</h3>
-
                 <div className="space-y-4">
-                    {/* Thumbnail Section */}
-                    <div>
-                        <label className="block text-sm font-medium text-foreground mb-2">Thumbnail</label>
-                        <div className="flex items-center gap-4">
-                            <div className="w-32 h-32 border-2 border-dashed border-border rounded flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/50 relative overflow-hidden">
-                                {formData.thumbnail ? (
-                                    <>
-                                        <img
-                                            src={formData.thumbnail.startsWith('http') ? formData.thumbnail : APIS.IMAGE.MEDIUM(formData.thumbnail)}
-                                            alt="Thumbnail"
-                                            className="w-full h-full object-cover"
-                                            crossOrigin="anonymous"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData(p => ({ ...p, thumbnail: '' }))}
-                                                className="bg-destructive text-white p-2 rounded-full"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            ref={thumbInputRef}
-                                            onChange={handleThumbnailUpload}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                            disabled={isUploadingThumb}
-                                        />
-                                        {isUploadingThumb ? (
-                                            <span className="text-xs">Uploading...</span>
-                                        ) : (
-                                            <>
-                                                <Plus className="w-8 h-8 text-muted-foreground" />
-                                                <span className="text-xs text-muted-foreground mt-1">Add Thumbnail</span>
-                                            </>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Product Images Section */}
                     <div>
                         <label className="block text-sm font-medium text-foreground mb-2">Product Images</label>
@@ -651,7 +569,7 @@ export default function EditProductPage() {
                         {loading ? 'Updating...' : 'Update Product'}
                     </button>
                 </div>
-            </form>
-        </div>
+            </form >
+        </div >
     );
 }

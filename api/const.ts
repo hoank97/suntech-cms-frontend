@@ -32,6 +32,7 @@ export const APIS = {
         DELETE: (id: number | string) => `product/${id}`
     },
     UPLOAD: () => `upload/image`,
+    UPLOAD_DOCUMENT: () => `upload/document`,
     IMAGE: {
         SMALL: (id: string) => `${process.env.NEXT_PUBLIC_BASE_IMAGE_URL}/${id}?size=small`,
         MEDIUM: (id: string) => `${process.env.NEXT_PUBLIC_BASE_IMAGE_URL}/${id}?size=medium`,

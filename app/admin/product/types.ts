@@ -23,9 +23,12 @@ export interface Product {
         name_en: string;
         name_vi: string;
     }[];
-    download_links: string[];
+    download_links: {
+        url: string;
+        originalName: string;
+        size: string;
+    }[];
     images: string[];
-    thumb?: string;
     created_at?: string;
     updated_at?: string;
 }
