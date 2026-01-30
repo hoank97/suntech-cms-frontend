@@ -1,9 +1,11 @@
 export const APIS = {
     AUTH: {
         LOGIN: () => `api/v1/login`,
+        CHANGE_PASSWORD: () => `api/v1/auth/change-password`,
     },
     USER: {
-        PROFILE: () => `api/v1/profile`
+        PROFILE: () => `api/v1/profile`,
+        LIST: () => `users`,
     },
     CATEGORY: {
         LIST: (options: { page: number, limit: number, q?: string, type?: string }) => `category/list?page=${options.page}&limit=${options.limit}&q=${options.q}&type=${options.type ?? ''}`,
@@ -20,6 +22,14 @@ export const APIS = {
         DETAIL: (id: string) => `industry/${id}`,
         GET_ALL: () => `industry`,
         DELETE: (id: number | string) => `industry/${id}`
+    },
+    PRODUCT: {
+        LIST: (options: { page: number, limit: number, q?: string }) => `product/list?page=${options.page}&limit=${options.limit}&q=${options.q}`,
+        CREATE: () => `product`,
+        UPDATE: (id: string) => `product/${id}`,
+        DETAIL: (id: string) => `product/${id}`,
+        GET_ALL: () => `product`,
+        DELETE: (id: number | string) => `product/${id}`
     },
     UPLOAD: () => `upload/image`,
     IMAGE: {
