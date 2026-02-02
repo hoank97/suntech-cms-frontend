@@ -37,5 +37,6 @@ export const APIS = {
         SMALL: (id: string) => `${process.env.NEXT_PUBLIC_BASE_IMAGE_URL}/${id}?size=small`,
         MEDIUM: (id: string) => `${process.env.NEXT_PUBLIC_BASE_IMAGE_URL}/${id}?size=medium`,
         LARGE: (id: string) => `${process.env.NEXT_PUBLIC_BASE_IMAGE_URL}/${id}?size=large`
-    }
+    },
+    DASHBOARD: '/dashboard/stats'
 }

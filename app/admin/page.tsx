@@ -2,32 +2,55 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Card } from '@/components/ui/card';
-
-const dashboardData = [
-  { name: 'Jan', users: 400, posts: 240, products: 220 },
-  { name: 'Feb', users: 520, posts: 290, products: 300 },
-  { name: 'Mar', users: 480, posts: 400, products: 380 },
-  { name: 'Apr', users: 590, posts: 480, products: 420 },
-  { name: 'May', users: 620, posts: 550, products: 490 },
-  { name: 'Jun', users: 720, posts: 640, products: 580 },
-];
-
-const pieData = [
-  { name: 'Active', value: 75 },
-  { name: 'Inactive', value: 15 },
-  { name: 'Pending', value: 10 },
-];
-
-const COLORS = ['#086799', '#f05110', '#d9d9d9'];
-
-const stats = [
-  { label: 'Total Users', value: '2,543', change: '+12%', color: 'bg-primary/10' },
-  { label: 'Total Products', value: '1,284', change: '+8%', color: 'bg-accent/10' },
-  { label: 'Active Posts', value: '847', change: '+15%', color: 'bg-secondary' },
-  { label: 'Categories', value: '42', change: '+3%', color: 'bg-primary/5' },
-];
+import { useRequest } from '@/hooks/use-request';
+import { useEffect, useState } from 'react';
+import { APIS } from '@/api/const';
 
 export default function Dashboard() {
+  const { request, data } = useRequest();
+  const [stats, setStats] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (data) {
+      console.log(data);
+      setStats([
+        {
+          color: 'bg-primary/10',
+          label: 'Total Users',
+          value: data.users?.total,
+          change: 'Working'
+        },
+        {
+          color: 'bg-accent/10',
+          label: 'Total Products',
+          value: data.products?.total || 0,
+          change: 'Working'
+        },
+        {
+          color: 'bg-secondary',
+          label: 'Total Industries',
+          value: data.industries?.total || 0,
+          change: 'Working'
+        },
+        {
+          color: 'bg-primary/5',
+          label: 'Total Categories',
+          value: data.categories?.total || 0,
+          change: 'Working'
+        },
+        {
+          color: 'bg-accent/5',
+          label: 'Total Posts',
+          value: data.posts?.total || 0,
+          change: 'Not applicable'
+        }
+      ]);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    request(APIS.DASHBOARD);
+  }, [])
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
@@ -37,7 +60,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {stats.map((stat, idx) => (
           <Card key={idx} className="p-6 bg-card border border-border">
             <div className={`w-10 h-10 ${stat.color} rounded-lg mb-4`} />
@@ -53,7 +76,7 @@ export default function Dashboard() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Line Chart */}
-        <Card className="lg:col-span-2 p-6 bg-card border border-border">
+        {/* <Card className="lg:col-span-2 p-6 bg-card border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">Growth Overview</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={dashboardData}>
@@ -65,10 +88,10 @@ export default function Dashboard() {
               <Line type="monotone" dataKey="posts" stroke="#f05110" strokeWidth={2} name="Posts" />
             </LineChart>
           </ResponsiveContainer>
-        </Card>
+        </Card> */}
 
         {/* Pie Chart */}
-        <Card className="p-6 bg-card border border-border">
+        {/* <Card className="p-6 bg-card border border-border">
           <h3 className="text-lg font-semibold text-foreground mb-4">User Status</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -89,11 +112,11 @@ export default function Dashboard() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Bar Chart */}
-      <Card className="p-6 bg-card border border-border">
+      {/* <Card className="p-6 bg-card border border-border">
         <h3 className="text-lg font-semibold text-foreground mb-4">Monthly Statistics</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={dashboardData}>
@@ -106,7 +129,7 @@ export default function Dashboard() {
             <Bar dataKey="products" fill="#d9d9d9" name="Products" />
           </BarChart>
         </ResponsiveContainer>
-      </Card>
+      </Card> */}
     </div>
   );
 }

@@ -50,7 +50,7 @@ export default function CreateProductPage() {
         product_enquiry_link: '',
         applications_en: [] as string[],
         applications_vi: [] as string[],
-        download_links: [] as { url: string; originalName: string; size: string }[],
+        download_links: [] as string[],
         summary_en: '',
         summary_vi: '',
         description_en: '',
@@ -120,11 +120,11 @@ export default function CreateProductPage() {
                     const data = await response.json();
                     setFormData(prev => ({
                         ...prev,
-                        download_links: [...prev.download_links, {
+                        download_links: [...prev.download_links, JSON.stringify({
                             url: data.url,
                             originalName: data.originalName,
                             size: data.size
-                        }]
+                        })]
                     }));
                 } else {
                     toast({ title: 'Error', description: `Failed to upload ${file.name}`, variant: 'destructive' });
@@ -411,14 +411,17 @@ export default function CreateProductPage() {
                         </div>
                     </div>
                     <ul className="space-y-1">
-                        {formData.download_links.map((link, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
-                                <span className="truncate flex-1">{link.originalName} ({link.size})</span>
-                                <button type="button" onClick={() => handleRemoveDownloadLink(idx)} className="text-destructive hover:text-destructive/80">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </li>
-                        ))}
+                        {formData.download_links.map((linkStr, idx) => {
+                            const link = JSON.parse(linkStr);
+                            return (
+                                <li key={idx} className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
+                                    <span className="truncate flex-1">{link.originalName} ({link.size})</span>
+                                    <button type="button" onClick={() => handleRemoveDownloadLink(idx)} className="text-destructive hover:text-destructive/80">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
 

@@ -57,7 +57,7 @@ export default function EditProductPage() {
         product_enquiry_link: '',
         applications_en: [] as string[],
         applications_vi: [] as string[],
-        download_links: [] as { url: string; originalName: string; size: string }[],
+        download_links: [] as string[],
         summary_en: '',
         summary_vi: '',
         description_en: '',
@@ -78,7 +78,9 @@ export default function EditProductPage() {
                 product_enquiry_link: data.product_enquiry_link || '',
                 applications_en: Array.isArray(data.applications_en) ? data.applications_en : [],
                 applications_vi: Array.isArray(data.applications_vi) ? data.applications_vi : [],
-                download_links: Array.isArray(data.download_links) ? data.download_links : [],
+                download_links: Array.isArray(data.download_links)
+                    ? data.download_links.map((link: any) => typeof link === 'string' ? link : JSON.stringify(link))
+                    : [],
                 summary_en: data.summary_en || '',
                 summary_vi: data.summary_vi || '',
                 description_en: data.description_en || '',
@@ -150,11 +152,11 @@ export default function EditProductPage() {
                     const data = await response.json();
                     setFormData(prev => ({
                         ...prev,
-                        download_links: [...prev.download_links, {
+                        download_links: [...prev.download_links, JSON.stringify({
                             url: data.url,
                             originalName: data.originalName,
                             size: data.size
-                        }]
+                        })]
                     }));
                 } else {
                     toast({ title: 'Error', description: `Failed to upload ${file.name}`, variant: 'destructive' });
@@ -417,14 +419,22 @@ export default function EditProductPage() {
                         </div>
                     </div>
                     <ul className="space-y-1">
-                        {formData.download_links.map((link, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
-                                <span className="truncate flex-1">{link.originalName} ({link.size})</span>
-                                <button type="button" onClick={() => handleRemoveDownloadLink(idx)} className="text-destructive hover:text-destructive/80">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </li>
-                        ))}
+                        {formData.download_links.map((linkStr, idx) => {
+                            let link;
+                            try {
+                                link = JSON.parse(linkStr);
+                            } catch (e) {
+                                link = { originalName: "Invalid Data", size: "", url: "" };
+                            }
+                            return (
+                                <li key={idx} className="flex items-center gap-2 text-sm bg-secondary p-2 rounded">
+                                    <span className="truncate flex-1">{link.originalName} ({link.size})</span>
+                                    <button type="button" onClick={() => handleRemoveDownloadLink(idx)} className="text-destructive hover:text-destructive/80">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
 

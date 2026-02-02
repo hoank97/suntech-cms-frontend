@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, LayoutDashboard, Users, Briefcase, ShoppingCart, Layers, FileText, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useRequest } from '@/hooks/use-request';
+import { APIS } from '@/api/const';
 
 interface SidebarProps {
   onLogout?: () => void;
@@ -13,6 +16,24 @@ interface SidebarProps {
 export function Sidebar({ onLogout }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { request: checkProfile, status } = useRequest({ hideToast: true });
+
+  useEffect(() => {
+    checkProfile(APIS.USER.PROFILE());
+  }, [pathname]);
+
+  useEffect(() => {
+    if (status === 401) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must login first',
+      });
+      router.push('/');
+    }
+  }, [status]);
 
   const menuItems = [
     {

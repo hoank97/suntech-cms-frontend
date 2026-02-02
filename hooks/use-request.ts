@@ -14,6 +14,7 @@ interface UseRequestReturn<T> {
     error: Error | null;
     loading: boolean;
     request: (url: string, options?: RequestOptions) => Promise<T | undefined>;
+    status: number | null;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8000';
@@ -22,6 +23,7 @@ export function useRequest<T = any>(options: { hideToast?: boolean } = {}): UseR
     const [data, setData] = useState<T | null>(null);
     const [error, setError] = useState<Error | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const [status, setStatus] = useState<number | null>(null);
     const hideToast = options.hideToast;
 
     const { toast } = useToast();
@@ -30,6 +32,7 @@ export function useRequest<T = any>(options: { hideToast?: boolean } = {}): UseR
         setLoading(true);
         setError(null);
         setData(null);
+        setStatus(null);
 
         try {
             const token = localStorage.getItem('suntech-x-atk');
@@ -56,6 +59,7 @@ export function useRequest<T = any>(options: { hideToast?: boolean } = {}): UseR
                 headers,
                 body,
             });
+            setStatus(response.status);
 
             if (!response.ok) {
                 let errorMessage = `Error ${response.status}: ${response.statusText}`;
@@ -99,5 +103,5 @@ export function useRequest<T = any>(options: { hideToast?: boolean } = {}): UseR
         }
     }, []);
 
-    return { data, error, loading, request };
+    return { data, error, loading, request, status: status };
 }
