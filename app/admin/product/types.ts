@@ -28,6 +28,7 @@ export interface Product {
         originalName: string;
         size: string;
     }[];
+    download_thumb?: string;
     images: string[];
     created_at?: string;
     updated_at?: string;

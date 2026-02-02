@@ -58,6 +58,7 @@ export default function EditProductPage() {
         applications_en: [] as string[],
         applications_vi: [] as string[],
         download_links: [] as string[],
+        download_thumb: '',
         summary_en: '',
         summary_vi: '',
         description_en: '',
@@ -81,6 +82,7 @@ export default function EditProductPage() {
                 download_links: Array.isArray(data.download_links)
                     ? data.download_links.map((link: any) => typeof link === 'string' ? link : JSON.stringify(link))
                     : [],
+                download_thumb: data.download_thumb || '',
                 summary_en: data.summary_en || '',
                 summary_vi: data.summary_vi || '',
                 description_en: data.description_en || '',
@@ -98,8 +100,10 @@ export default function EditProductPage() {
     // Image handling
     const fileInputRef = useRef<HTMLInputElement>(null);
     const docInputRef = useRef<HTMLInputElement>(null);
+    const downloadThumbInputRef = useRef<HTMLInputElement>(null);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+    const [isUploadingDownloadThumb, setIsUploadingDownloadThumb] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -240,6 +244,37 @@ export default function EditProductPage() {
         }));
     };
 
+    const handleDownloadThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingDownloadThumb(true);
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+        const token = localStorage.getItem('suntech-x-atk');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
+                method: 'POST',
+                body: uploadFormData,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFormData(prev => ({ ...prev, download_thumb: data.id }));
+            } else {
+                toast({ title: 'Error', description: 'Failed to upload download thumbnail', variant: 'destructive' });
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ title: 'Error', description: 'Error uploading download thumbnail', variant: 'destructive' });
+        }
+        setIsUploadingDownloadThumb(false);
+        if (downloadThumbInputRef.current) downloadThumbInputRef.current.value = '';
+    };
 
 
     // --- Submit ---
@@ -436,6 +471,54 @@ export default function EditProductPage() {
                             );
                         })}
                     </ul>
+                </div>
+
+                {/* Download Thumbnail */}
+                <div className="mt-4">
+                    <label className="block text-sm font-semibold text-foreground mb-2">Download Thumbnail</label>
+                    <div className="flex gap-4 items-start">
+                        <div className="flex-1">
+                            <div className="relative border-2 border-dashed border-border rounded-md p-4 hover:bg-secondary/50 transition-colors cursor-pointer text-center h-32 flex flex-col items-center justify-center">
+                                <input
+                                    type="file"
+                                    ref={downloadThumbInputRef}
+                                    accept="image/*"
+                                    onChange={handleDownloadThumbUpload}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    disabled={isUploadingDownloadThumb}
+                                />
+                                {isUploadingDownloadThumb ? (
+                                    <span className="text-sm">Uploading...</span>
+                                ) : (
+                                    <>
+                                        <Upload className="w-6 h-6 text-muted-foreground mb-2" />
+                                        <p className="text-sm font-medium text-foreground">Click to upload</p>
+                                        <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        {formData.download_thumb && (
+                            <div className="w-32 h-32 bg-secondary rounded-md overflow-hidden flex items-center justify-center relative border border-border">
+                                <img
+                                    src={formData.download_thumb.startsWith('http') ? formData.download_thumb : APIS.IMAGE.MEDIUM(formData.download_thumb)}
+                                    alt="Download Thumbnail"
+                                    crossOrigin="anonymous"
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setFormData(prev => ({ ...prev, download_thumb: '' }));
+                                        if (downloadThumbInputRef.current) downloadThumbInputRef.current.value = '';
+                                    }}
+                                    className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded hover:bg-destructive/90"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Applications */}
