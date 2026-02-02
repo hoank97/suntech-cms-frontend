@@ -29,7 +29,7 @@ export default function EditProductPage() {
         if (id) {
             getProduct(APIS.PRODUCT.DETAIL(id), { method: 'GET' });
         }
-        getAllCategories(APIS.CATEGORY.GET_ALL(), { method: 'GET' });
+        getAllCategories(APIS.CATEGORY.LIST({ page: 1, limit: 1000000, type: 'product', q: '' }), { method: 'GET' });
         getAllIndustries(APIS.INDUSTRY.GET_ALL(), { method: 'GET' });
     }, [id]);
 

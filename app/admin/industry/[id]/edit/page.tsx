@@ -26,12 +26,14 @@ export default function EditIndustryPage() {
   const { request: updateIndustryRequest, data: updateIndustryData, loading } = useRequest({ hideToast: false });
   const { request: getIndustry, data: industryData } = useRequest({ hideToast: true });
   const { request: getAllIndustries, data: allIndustriesData } = useRequest({ hideToast: true });
+  const { request: getAllCategories, data: allCategoriesData } = useRequest({ hideToast: true });
 
   useEffect(() => {
     if (id) {
       getIndustry(APIS.INDUSTRY.DETAIL(id), { method: 'GET' });
     }
     getAllIndustries(APIS.INDUSTRY.GET_ALL(), { method: 'GET' });
+    getAllCategories(APIS.CATEGORY.LIST({ page: 1, limit: 1000000, type: 'industry', q: '' }), { method: 'GET' });
   }, [id]);
 
   useEffect(() => {
@@ -53,6 +55,7 @@ export default function EditIndustryPage() {
         applications_vi: Array.isArray(data.applications_vi) ? data.applications_vi : [],
         solution_link: data.solution_link || '',
         parent_id: data.parent_id || '',
+        category_id: data.category_id || '',
       });
 
       if (data.image_url) {
@@ -89,6 +92,7 @@ export default function EditIndustryPage() {
     applications_vi: [] as string[],
     solution_link: '',
     parent_id: '' as string | number | null,
+    category_id: '' as string | number | null,
   });
 
   const [newAppEn, setNewAppEn] = useState('');
@@ -188,6 +192,7 @@ export default function EditIndustryPage() {
           ...formData,
           image_url: imageUrl,
           parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+          category_id: formData.category_id ? Number(formData.category_id) : null,
         },
       }
     );
@@ -253,8 +258,29 @@ export default function EditIndustryPage() {
           </div>
         </div>
 
-        {/* Parent & Link */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Category, Parent & Link */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label htmlFor="category_id" className="block text-sm font-semibold text-foreground mb-2">
+              Category (Optional)
+            </label>
+            <select
+              id="category_id"
+              name="category_id"
+              value={formData.category_id || ''}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Select a category...</option>
+              {allCategoriesData && allCategoriesData.data
+                ? allCategoriesData.data.map((cat: any) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name_en}
+                  </option>
+                ))
+                : null}
+            </select>
+          </div>
           <div>
             <label htmlFor="parent_id" className="block text-sm font-semibold text-foreground mb-2">
               Parent Industry (Optional)

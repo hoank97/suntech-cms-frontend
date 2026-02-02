@@ -4,6 +4,7 @@ export interface Industry {
     name_vi: string;
     image_url?: string;
     parent_id?: number | null;
+    category_id?: number | null;
     introduction_en: string;
     introduction_vi: string;
     applications_en: string[];

@@ -12,7 +12,7 @@ export const APIS = {
         CREATE: () => `category`,
         UPDATE: (id: string) => `category/${id}`,
         DETAIL: (id: string) => `category/${id}`,
-        GET_ALL: () => `category`,
+        GET_ALL: (type?: string) => `category?type=${type ? type : ''}`,
         DELETE: (id: number | string) => `category/${id}`
     },
     INDUSTRY: {
