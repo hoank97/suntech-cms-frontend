@@ -1,8 +1,10 @@
 'use client';
 
 import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
+import { BubbleMenu } from '@tiptap/react/menus';
+import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
+import Link, { LinkOptions } from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
@@ -12,7 +14,7 @@ import { Color } from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Plugin, PluginKey } from 'prosemirror-state';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import { Node, Extension } from '@tiptap/core';
+import { Node, Extension, Editor } from '@tiptap/core';
 
 import {
     Bold,
@@ -48,6 +50,9 @@ import {
     EyeOff,
     MoveVertical,
     Type,
+    ExternalLink,
+    Pencil,
+    Unlink as UnlinkIcon,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
@@ -61,7 +66,7 @@ interface TipTapEditorProps {
     className?: string;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const isTableActive = editor && (editor.isActive('table') || editor.can().deleteTable());
     const isHrActive = editor && editor.isActive('horizontalRule');
     const isImageActive = editor && editor.isActive('image');
@@ -80,7 +85,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     });
 
     useEffect(() => {
-        if (isHrActive) {
+        if (isHrActive && editor) {
             const attrs = editor.getAttributes('horizontalRule');
             setHrSettings({
                 color: attrs.color || '#e0e0e0',
@@ -94,7 +99,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     const updateHrSetting = (updates: Partial<typeof hrSettings>) => {
         setHrSettings(prev => {
             const newSettings = { ...prev, ...updates };
-            if (isHrActive) {
+            if (isHrActive && editor) {
                 editor.chain().focus().updateAttributes('horizontalRule', newSettings).run();
             }
             return newSettings;
@@ -111,6 +116,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
     }, []);
 
     const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!editor) return;
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -165,6 +171,8 @@ const MenuBar = ({ editor }: { editor: any }) => {
             return;
         }
 
+        if (!editor) return;
+
         const previousUrl = editor.getAttributes('link').href;
         // Get selected text or current text at cursor if inside a link
         const { from, to } = editor.state.selection;
@@ -176,31 +184,38 @@ const MenuBar = ({ editor }: { editor: any }) => {
     }, [editor, isLinkOpen]);
 
     const saveLink = useCallback(() => {
+        if (!editor) return;
         if (!linkUrl) {
             editor.chain().focus().extendMarkRange('link').unsetLink().run();
             setIsLinkOpen(false);
             return;
         }
 
+        const linkAttributes = {
+            href: linkUrl,
+            target: '_blank',
+        };
+
         if (linkText) {
             editor
                 .chain()
                 .focus()
                 .extendMarkRange('link')
-                .setLink({ href: linkUrl })
+                .setLink(linkAttributes)
                 .command(({ tr }: any) => {
                     tr.insertText(linkText);
                     return true;
                 })
                 .run();
         } else {
-            editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run();
+            editor.chain().focus().extendMarkRange('link').setLink(linkAttributes).run();
         }
 
         setIsLinkOpen(false);
     }, [editor, linkUrl, linkText]);
 
     const removeLink = useCallback(() => {
+        if (!editor) return;
         editor.chain().focus().extendMarkRange('link').unsetLink().run();
         setIsLinkOpen(false);
     }, [editor]);
@@ -211,7 +226,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
     return (
         <>
-            <div className="border-b border-border bg-secondary/50 p-2 flex flex-wrap gap-1 sticky top-0 z-10">
+            <div className="border-b border-border bg-secondary/50 p-2 flex flex-wrap gap-1 sticky top-0 z-10 rounded-t-md">
                 <input
                     type="file"
                     className="hidden"
@@ -781,7 +796,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
                     {!isHrActive && (
                         <button
                             onClick={() => {
-                                editor.chain().focus().setHorizontalRule(hrSettings).run();
+                                (editor.chain().focus() as any).setHorizontalRule(hrSettings).run();
                                 setIsHrToolbarOpen(false);
                             }}
                             className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center gap-1 ml-auto"
@@ -848,6 +863,40 @@ const MenuBar = ({ editor }: { editor: any }) => {
                         100%
                     </button>
                 </div>
+            )}
+            {editor && (
+                <BubbleMenu editor={editor} shouldShow={({ editor }) => editor.isActive('link')}>
+                    <div className="bg-popover border border-border rounded-md shadow-md p-1 flex items-center gap-1">
+                        <button
+                            onClick={() => {
+                                const href = editor.getAttributes('link').href;
+                                window.open(href, '_blank');
+                            }}
+                            className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
+                            title="Open Link"
+                            type="button"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                        </button>
+                        <div className="w-px h-4 bg-border mx-1" />
+                        <button
+                            onClick={openLinkMenu}
+                            className="p-1.5 hover:bg-accent rounded text-muted-foreground hover:text-foreground transition-colors"
+                            title="Edit Link"
+                            type="button"
+                        >
+                            <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().unsetLink().run()}
+                            className="p-1.5 hover:bg-accent rounded text-destructive hover:text-destructive transition-colors"
+                            title="Unlink"
+                            type="button"
+                        >
+                            <UnlinkIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+                </BubbleMenu>
             )}
         </>
     );
@@ -1074,6 +1123,31 @@ const CustomImage = Image.extend({
     },
 });
 
+const CustomLink = Link.extend({
+    addOptions() {
+        return {
+            ...this.parent?.(),
+            openOnClick: false,
+            HTMLAttributes: {
+                target: '_blank',
+            },
+        } as LinkOptions;
+    },
+    addAttributes() {
+        return {
+            ...this.parent?.(),
+            target: {
+                default: '_blank',
+                parseHTML: element => element.getAttribute('target'),
+                renderHTML: () => ({
+                    target: '_blank',
+                    rel: 'noopener noreferrer nofollow',
+                }),
+            },
+        };
+    },
+});
+
 const LineHeightExtension = Extension.create({
     name: 'lineHeight',
     addOptions() {
@@ -1124,12 +1198,11 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
             Placeholder.configure({
                 placeholder: placeholder || 'Write something...',
             }),
-            Link.configure({
+            CustomLink.configure({
                 openOnClick: false,
                 HTMLAttributes: {
                     target: '_blank',
-                    rel: 'noopener noreferrer',
-                },
+                }
             }),
             CustomImage,
             LineHeightExtension,
@@ -1147,6 +1220,9 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
             TableCell,
             TextStyle,
             Color,
+            BubbleMenuExtension.configure({
+                pluginKey: 'bubbleMenu', // specific key if needed, or default
+            }),
         ],
         content: value,
         onUpdate: ({ editor }) => {
@@ -1198,6 +1274,14 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
         // Attach listener to the editor's DOM element
         if (editorElement) {
             editorElement.addEventListener('dblclick', handleDoubleClick);
+            // Add click listener to prevent default navigation on single clicks
+            editorElement.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                const link = target.closest('a');
+                if (link && editorElement.contains(link)) {
+                    e.preventDefault();
+                }
+            });
         }
 
         return () => {
@@ -1208,7 +1292,7 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
     }, [editor]);
 
     return (
-        <div className="border border-border rounded-md overflow-hidden bg-card text-card-foreground shadow-sm">
+        <div className="border border-border rounded-md bg-card text-card-foreground shadow-sm">
             <style jsx global>{`
         .ProseMirror table {
           border-collapse: collapse;
@@ -1276,11 +1360,12 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
         }
         .ProseMirror a {
           color: #2563eb;
-          text-decoration: underline;
+          text-decoration: none;
           cursor: pointer;
         }
         .ProseMirror a:hover {
           color: #1d4ed8;
+          text-decoration: none;
         }
         .ProseMirror blockquote {
             background: #f4f4f5;
@@ -1343,6 +1428,7 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
         }
       `}</style>
             <MenuBar editor={editor} />
+
             <EditorContent editor={editor} className="p-4" />
         </div>
     );

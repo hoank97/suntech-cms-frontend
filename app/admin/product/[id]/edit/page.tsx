@@ -73,7 +73,9 @@ export default function EditProductPage() {
                 name_en: data.name_en || '',
                 name_vi: data.name_vi || '',
                 category_id: data.category_id || '',
-                industry_ids: Array.isArray(data.industry_ids) ? data.industry_ids : [],
+                industry_ids: Array.isArray(data.industries)
+                    ? data.industries.map((ind: any) => String(ind.id))
+                    : (Array.isArray(data.industry_ids) ? data.industry_ids.map(String) : []),
                 buy_link: data.buy_link || '',
                 documentation_link: data.documentation_link || '',
                 product_enquiry_link: data.product_enquiry_link || '',
