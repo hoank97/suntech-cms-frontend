@@ -29,25 +29,16 @@ export default function IndustryPage() {
     fetchIndustries();
   }, [currentPage, searchTerm]);
 
-  useEffect(() => {
-    if (deleteData) {
+  const handleDelete = async (id: number) => {
+    const res = await deleteIndustry(APIS.INDUSTRY.DELETE(id), { method: 'DELETE' });
+    if (res) {
+      setDeleteId(null);
       toast({
         title: 'Success',
         description: 'Industry deleted successfully',
-        variant: 'default',
       });
-      setDeleteId(null);
       fetchIndustries();
     }
-  }, [deleteData]);
-
-  const handleDelete = async (id: number) => {
-    await deleteIndustry(APIS.INDUSTRY.DELETE(id), { method: 'DELETE' })
-    setDeleteId(null);
-    toast({
-      title: 'Success',
-      description: 'Industry deleted successfully',
-    });
   };
 
   const industries: Industry[] = Array.isArray(industriesData?.data || industriesData)

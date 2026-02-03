@@ -32,26 +32,6 @@ export default function CategoryPage() {
   }, [categoriesData])
 
   useEffect(() => {
-    if (deleteData) {
-      toast({
-        title: 'Success',
-        description: 'Category deleted successfully',
-      });
-      setDeleteId(null);
-      // Refresh list
-      request(
-        APIS.CATEGORY.LIST({
-          page: currentPage,
-          limit: ITEMS_PER_PAGE,
-          q: searchTerm,
-          type: typeFilter === 'all' ? undefined : typeFilter
-        }),
-        { method: 'GET' }
-      );
-    }
-  }, [deleteData]);
-
-  useEffect(() => {
     request(
       APIS.CATEGORY.LIST({
         page: currentPage,
@@ -66,12 +46,23 @@ export default function CategoryPage() {
   }, [currentPage, searchTerm, typeFilter]);
 
   const handleDelete = async (id: number) => {
-    await deleteRequest(APIS.CATEGORY.DELETE(id), { method: 'DELETE' });
-    toast({
-      title: 'Success',
-      description: 'Category deleted successfully',
-    });
-    setDeleteId(null);
+    const res = await deleteRequest(APIS.CATEGORY.DELETE(id), { method: 'DELETE' });
+    if (res) {
+      toast({
+        title: 'Success',
+        description: 'Category deleted successfully',
+      });
+      setDeleteId(null);
+      request(
+        APIS.CATEGORY.LIST({
+          page: currentPage,
+          limit: ITEMS_PER_PAGE,
+          q: searchTerm,
+          type: typeFilter === 'all' ? undefined : typeFilter
+        }),
+        { method: 'GET' }
+      );
+    }
   };
 
   return (

@@ -34,25 +34,16 @@ export default function ProductPage() {
     }
   }, [productsData]);
 
-  useEffect(() => {
-    if (deleteData) {
+  const handleDelete = async (id: number) => {
+    const res = await deleteProduct(APIS.PRODUCT.DELETE(id), { method: 'DELETE' });
+    if (res) {
+      setDeleteId(null);
       toast({
         title: 'Success',
         description: 'Product deleted successfully',
-        variant: 'default',
       });
-      setDeleteId(null);
       fetchProducts();
     }
-  }, [deleteData]);
-
-  const handleDelete = async (id: number) => {
-    await deleteProduct(APIS.PRODUCT.DELETE(id), { method: 'DELETE' })
-    setDeleteId(null);
-    toast({
-      title: 'Success',
-      description: 'Product deleted successfully',
-    });
   };
 
   const products: Product[] = Array.isArray(productsData?.data || productsData)
