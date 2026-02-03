@@ -279,7 +279,7 @@ export default function CreateProductPage() {
                 body: {
                     ...formData,
                     category_id: formData.category_id ? Number(formData.category_id) : null,
-                    // industry_ids are already strings/array, assuming backend accepts them as is
+                    industry_ids: formData.industry_ids.map(Number),
                 }
             }
         );

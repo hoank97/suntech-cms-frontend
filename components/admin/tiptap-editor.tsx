@@ -1126,6 +1126,10 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
             }),
             Link.configure({
                 openOnClick: false,
+                HTMLAttributes: {
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                },
             }),
             CustomImage,
             LineHeightExtension,
@@ -1175,6 +1179,33 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
             editor.commands.setContent(value);
         }
     }, [editor, value]);
+
+    // Handle double click on links
+    useEffect(() => {
+        if (!editor) return;
+
+        const editorElement = editor.options.element as HTMLElement;
+
+        const handleDoubleClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const link = target.closest('a');
+            if (link && editorElement.contains(link)) {
+                e.preventDefault();
+                window.open(link.href, '_blank');
+            }
+        };
+
+        // Attach listener to the editor's DOM element
+        if (editorElement) {
+            editorElement.addEventListener('dblclick', handleDoubleClick);
+        }
+
+        return () => {
+            if (editorElement) {
+                editorElement.removeEventListener('dblclick', handleDoubleClick);
+            }
+        };
+    }, [editor]);
 
     return (
         <div className="border border-border rounded-md overflow-hidden bg-card text-card-foreground shadow-sm">
