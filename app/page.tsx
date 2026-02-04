@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from "react"
+import React, { useEffect, useLayoutEffect } from "react"
 
 import { useState } from 'react';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -15,22 +15,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast()
+  const [isDoneChecking, setIsDoneChecking] = useState<boolean>(false);
 
   const { request: loginRequest, data: loginData, loading: loginLoading } = useRequest();
-  const { request: profileRequest, data: profileData, loading: profileLoading } = useRequest({ hideToast: true });
+  const { request: profileRequest, data: profileData, loading: isProfileLoading } = useRequest({ hideToast: true });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const token = localStorage.getItem('suntech-x-atk');
     if (token) {
       profileRequest(APIS.USER.PROFILE(), {
         method: 'GET',
-      });
+      })
     }
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!isProfileLoading) {
+      const timeout = setTimeout(() => {
+        setIsDoneChecking(true);
+      }, 299);
+      return () => clearTimeout(timeout);
+    }
+  }, [isProfileLoading]);
+
+  useLayoutEffect(() => {
     if (profileData) {
-      localStorage.setItem('suntech-x-atk', profileData.token);
       window.location.replace('/admin');
     }
   }, [profileData]);
@@ -65,7 +74,11 @@ export default function LoginPage() {
     });
   };
 
-  return profileLoading || profileLoading === undefined ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+  return !isDoneChecking ? (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <Loader2 className="animate-spin" />
+    </div>
+  ) : (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       {/* Background accent elements */}
       <div className="fixed top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/5 to-transparent rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
