@@ -87,9 +87,7 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Login Card */}
         <div className="bg-card border border-border rounded-lg shadow-sm p-8">
-          <h2 className="text-center text-primary text-2xl font-bold mb-5">
-            Suntech - Admin Panel
-          </h2>
+          <img src="/favicon.png" alt="Logo" className="mx-auto mb-4 w-20" />
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Username Field */}
             <div>
