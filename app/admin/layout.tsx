@@ -13,7 +13,7 @@ export default function AdminLayout({
   const router = useRouter();
 
   const handleLogout = () => {
-    // Handle logout logic here
+    localStorage.removeItem('suntech-x-atk');
     router.push('/');
   };
 
