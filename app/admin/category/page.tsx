@@ -19,6 +19,8 @@ export default function CategoryPage() {
   const [totalPage, setTotalPage] = useState<number>(0);
   const [totalItems, setTotalItems] = useState<number>(0);
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { request, data: categoriesData } = useRequest();
   const { request: deleteRequest, data: deleteData } = useRequest({ hideToast: false });
   const { toast } = useToast();
@@ -46,7 +48,9 @@ export default function CategoryPage() {
   }, [currentPage, searchTerm, typeFilter]);
 
   const handleDelete = async (id: number) => {
+    setIsDeleting(true);
     const res = await deleteRequest(APIS.CATEGORY.DELETE(id), { method: 'DELETE' });
+    setIsDeleting(false);
     if (res) {
       toast({
         title: 'Success',
@@ -239,9 +243,10 @@ export default function CategoryPage() {
                 </button>
                 <button
                   onClick={() => handleDelete(deleteId)}
-                  className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                  disabled={isDeleting}
+                  className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:bg-destructive/50 disabled:cursor-not-allowed"
                 >
-                  Delete
+                  {isDeleting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

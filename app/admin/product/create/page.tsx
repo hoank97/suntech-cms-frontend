@@ -10,6 +10,7 @@ import { APIS } from "@/api/const";
 import { useToast } from "@/hooks/use-toast";
 import { Category } from "../../category/types";
 import { Industry } from "../../industry/types";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function CreateProductPage() {
     const router = useRouter();
@@ -17,7 +18,7 @@ export default function CreateProductPage() {
     const { toast } = useToast();
 
     // Requests
-    const { request: createProductRequest, data: createProductData, loading } = useRequest({ hideToast: false });
+    const { request: createProductRequest, data: createProductData, loading } = useRequest({ hideToast: true });
     const { request: getAllCategories, data: allCategoriesData } = useRequest({ hideToast: true });
     const { request: getAllIndustries, data: allIndustriesData } = useRequest({ hideToast: true });
 
@@ -28,15 +29,12 @@ export default function CreateProductPage() {
 
     useEffect(() => {
         if (createProductData) {
+            router.push('/admin/product');
             toast({
                 title: 'Success',
                 description: 'Product created successfully',
                 variant: 'default',
             });
-            const timeout = setTimeout(() => {
-                router.push('/admin/product');
-            }, 2000);
-            return () => clearTimeout(timeout);
         }
     }, [createProductData]);
 
@@ -268,22 +266,35 @@ export default function CreateProductPage() {
 
 
     // --- Submit ---
+    const isSubmittingRef = useRef(false);
+
+    // --- Submit ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmittingRef.current || loading || isLoading) {
+            return;
+        }
+        isSubmittingRef.current = true;
         setIsLoading(true);
 
-        await createProductRequest(
-            APIS.PRODUCT.CREATE(),
-            {
-                method: 'POST',
-                body: {
-                    ...formData,
-                    category_id: formData.category_id ? Number(formData.category_id) : null,
-                    industry_ids: formData.industry_ids.map(Number),
-                }
-            }
-        );
-        setIsLoading(false);
+        try {
+            await createProductRequest(
+                APIS.PRODUCT.CREATE(),
+                {
+                    method: 'POST',
+                    body: {
+                        ...formData,
+                        category_id: formData.category_id ? Number(formData.category_id) : null,
+                        industry_ids: formData.industry_ids.map(Number),
+                    }
+                },
+            );
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+            isSubmittingRef.current = false;
+        }
     };
 
     // Helper to get industry name
@@ -295,6 +306,7 @@ export default function CreateProductPage() {
 
     return (
         <div className="space-y-6">
+            <LoadingScreen isLoading={loading || isLoading} />
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link
@@ -643,10 +655,10 @@ export default function CreateProductPage() {
                     </Link>
                     <button
                         type="submit"
-                        disabled={loading || isUploadingImage}
+                        disabled={loading || isLoading || isUploadingImage || isUploadingDoc || isUploadingDownloadThumb}
                         className="px-6 py-2 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-accent-foreground rounded-md transition-colors font-medium"
                     >
-                        {loading ? 'Creating...' : 'Create Product'}
+                        {loading || isLoading ? 'Creating...' : 'Create Product'}
                     </button>
                 </div>
             </form>

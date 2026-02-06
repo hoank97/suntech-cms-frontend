@@ -14,6 +14,7 @@ export default function IndustryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
 
@@ -30,7 +31,9 @@ export default function IndustryPage() {
   }, [currentPage, searchTerm]);
 
   const handleDelete = async (id: number) => {
+    setIsDeleting(true);
     const res = await deleteIndustry(APIS.INDUSTRY.DELETE(id), { method: 'DELETE' });
+    setIsDeleting(false);
     if (res) {
       setDeleteId(null);
       toast({
@@ -217,9 +220,10 @@ export default function IndustryPage() {
               </button>
               <button
                 onClick={() => handleDelete(deleteId)}
-                className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:bg-destructive/50 disabled:cursor-not-allowed"
               >
-                Delete
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

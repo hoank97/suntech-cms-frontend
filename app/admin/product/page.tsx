@@ -14,6 +14,7 @@ export default function ProductPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
 
   const { request: getProducts, data: productsData, loading } = useRequest({ hideToast: true });
@@ -35,7 +36,9 @@ export default function ProductPage() {
   }, [productsData]);
 
   const handleDelete = async (id: number) => {
+    setIsDeleting(true);
     const res = await deleteProduct(APIS.PRODUCT.DELETE(id), { method: 'DELETE' });
+    setIsDeleting(false);
     if (res) {
       setDeleteId(null);
       toast({
@@ -215,9 +218,10 @@ export default function ProductPage() {
               </button>
               <button
                 onClick={() => handleDelete(deleteId)}
-                className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:bg-destructive/50 disabled:cursor-not-allowed"
               >
-                Delete
+                {isDeleting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

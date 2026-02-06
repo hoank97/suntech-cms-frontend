@@ -9,6 +9,7 @@ import { useRequest } from "@/hooks/use-request";
 import { APIS } from "@/api/const";
 import { useToast } from "@/hooks/use-toast";
 import { Industry } from "../types";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function CreateIndustryPage() {
   const router = useRouter();
@@ -30,17 +31,12 @@ export default function CreateIndustryPage() {
 
   useEffect(() => {
     if (createIndustryData) {
+      router.push('/admin/industry');
       toast({
         title: 'Success',
         description: 'Industry created successfully',
         variant: 'default',
       });
-
-      const timeoutCloseToast = setTimeout(() => {
-        router.push('/admin/industry');
-      }, 2000);
-
-      return () => clearTimeout(timeoutCloseToast);
     }
   }, [createIndustryData]);
 
@@ -101,70 +97,85 @@ export default function CreateIndustryPage() {
     }));
   };
 
+  const isSubmittingRef = useRef(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current || loading || isLoading) {
+      return;
+    }
+    isSubmittingRef.current = true;
     setIsLoading(true);
 
-    let imageUrl = formData.image_url;
+    try {
+      let imageUrl = formData.image_url;
 
-    // Step 1: Upload image
-    if (uploadImage) {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', uploadImage);
+      // Step 1: Upload image
+      if (uploadImage) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', uploadImage);
 
-      const token = localStorage.getItem('suntech-x-atk');
+        const token = localStorage.getItem('suntech-x-atk');
 
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
-          method: 'POST',
-          body: uploadFormData,
-          headers: {
-            Authorization: `Bearer ${token}`,
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
+            method: 'POST',
+            body: uploadFormData,
+            headers: {
+              Authorization: `Bearer ${token}`,
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            imageUrl = data.id;
+          } else {
+            toast({
+              title: 'Error',
+              description: 'Failed to upload image',
+              variant: 'destructive',
+            });
+            setIsLoading(false);
+            isSubmittingRef.current = false;
+            return;
           }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          imageUrl = data.id;
-        } else {
+        } catch (error) {
+          console.error('Upload error:', error);
           toast({
             title: 'Error',
-            description: 'Failed to upload image',
+            description: 'Error uploading image',
             variant: 'destructive',
           });
           setIsLoading(false);
+          isSubmittingRef.current = false;
           return;
         }
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast({
-          title: 'Error',
-          description: 'Error uploading image',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
       }
-    }
 
-    // Step 2: Create Industry
-    await createIndustryRequest(
-      APIS.INDUSTRY.CREATE(),
-      {
-        method: 'POST',
-        body: {
-          ...formData,
-          image_url: imageUrl,
-          parent_id: formData.parent_id ? Number(formData.parent_id) : null,
-          category_id: formData.category_id ? Number(formData.category_id) : null,
-        },
-      }
-    );
-    setIsLoading(false);
+      // Step 2: Create Industry
+      await createIndustryRequest(
+        APIS.INDUSTRY.CREATE(),
+        {
+          method: 'POST',
+          body: {
+            ...formData,
+            image_url: imageUrl,
+            parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+            category_id: formData.category_id ? Number(formData.category_id) : null,
+          },
+        }
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+      isSubmittingRef.current = false;
+    }
   };
 
   return (
     <div className="space-y-6">
+      <LoadingScreen isLoading={loading || isLoading} />
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
@@ -405,10 +416,10 @@ export default function CreateIndustryPage() {
           </Link>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || isLoading}
             className="px-6 py-2 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-accent-foreground rounded-md transition-colors font-medium"
           >
-            {loading ? 'Creating...' : 'Create Industry'}
+            {loading || isLoading ? 'Creating...' : 'Create Industry'}
           </button>
         </div>
       </form>

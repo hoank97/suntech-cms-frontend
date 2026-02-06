@@ -8,6 +8,7 @@ import { Category, CategoryType } from '../../types';
 import { useRequest } from "@/hooks/use-request";
 import { APIS } from "@/api/const";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function UpdateCategoryPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -62,17 +63,12 @@ export default function UpdateCategoryPage({ params }: { params: Promise<{ id: s
     // Handle Update Success
     useEffect(() => {
         if (updateData) {
+            router.push('/admin/category');
             toast({
                 title: 'Success',
                 description: 'Category updated successfully',
                 variant: 'default',
             });
-
-            const timeoutCloseToast = setTimeout(() => {
-                router.push('/admin/category');
-            }, 1000); // Faster redirect
-
-            return () => clearTimeout(timeoutCloseToast);
         }
     }, [updateData]);
 
@@ -97,64 +93,79 @@ export default function UpdateCategoryPage({ params }: { params: Promise<{ id: s
         }
     };
 
+    const isSubmittingRef = useRef(false);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (isSubmittingRef.current || updateLoading || isLoading) {
+            return;
+        }
+        isSubmittingRef.current = true;
         setIsLoading(true);
 
-        let finalImageUrl = formData.img_url;
+        try {
+            let finalImageUrl = formData.img_url;
 
-        // Step 1: Upload new image if selected
-        if (uploadImage) {
-            const uploadFormData = new FormData();
-            uploadFormData.append('file', uploadImage);
+            // Step 1: Upload new image if selected
+            if (uploadImage) {
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', uploadImage);
 
-            const token = localStorage.getItem('suntech-x-atk');
+                const token = localStorage.getItem('suntech-x-atk');
 
-            try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
-                    method: 'POST',
-                    body: uploadFormData,
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
-                });
-
-                if (response.ok) {
-                    const imageData = await response.json();
-                    finalImageUrl = imageData.id;
-                } else {
-                    toast({
-                        title: 'Error',
-                        description: 'Failed to upload image',
-                        variant: 'destructive',
+                try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${APIS.UPLOAD()}`, {
+                        method: 'POST',
+                        body: uploadFormData,
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        }
                     });
+
+                    if (response.ok) {
+                        const imageData = await response.json();
+                        finalImageUrl = imageData.id;
+                    } else {
+                        toast({
+                            title: 'Error',
+                            description: 'Failed to upload image',
+                            variant: 'destructive',
+                        });
+                        setIsLoading(false);
+                        isSubmittingRef.current = false;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
                     setIsLoading(false);
+                    isSubmittingRef.current = false;
                     return;
                 }
-            } catch (error) {
-                console.error('Upload error:', error);
-                setIsLoading(false);
-                return;
             }
-        }
 
-        // Step 2: Update category
-        await updateCategory(
-            APIS.CATEGORY.UPDATE(id),
-            {
-                method: 'PATCH',
-                body: {
-                    ...formData,
-                    img_url: finalImageUrl,
-                    parent_id: formData.parent_id ? Number(formData.parent_id) : null,
-                },
-            }
-        );
-        setIsLoading(false);
+            // Step 2: Update category
+            await updateCategory(
+                APIS.CATEGORY.UPDATE(id),
+                {
+                    method: 'PATCH',
+                    body: {
+                        ...formData,
+                        img_url: finalImageUrl,
+                        parent_id: formData.parent_id ? Number(formData.parent_id) : null,
+                    },
+                }
+            );
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+            isSubmittingRef.current = false;
+        }
     };
 
     return (
         <div className="space-y-6">
+            <LoadingScreen isLoading={updateLoading || isLoading} />
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link
@@ -262,7 +273,8 @@ export default function UpdateCategoryPage({ params }: { params: Promise<{ id: s
                                     ref={fileInputRef}
                                     accept="image/*"
                                     onChange={handleImageUpload}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    disabled={isLoading || updateLoading}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                                 />
                                 <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                                 <p className="text-sm font-medium text-foreground">Click/Drag to upload</p>
