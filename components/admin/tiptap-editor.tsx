@@ -226,7 +226,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
     return (
         <>
-            <div className="border-b border-border bg-secondary/50 p-2 flex flex-wrap gap-1 sticky top-0 z-10 rounded-t-md">
+            <div className="border-b border-border bg-secondary p-2 flex flex-wrap gap-1 sticky top-0 z-50 rounded-t-md">
                 <input
                     type="file"
                     className="hidden"
@@ -640,7 +640,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
             {/* Table Operations Toolbar - Only show when table is active */}
             {isTableActive && (
-                <div className="border-b border-border bg-secondary/30 px-2 py-1.5 flex flex-wrap gap-1">
+                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-1">
                     <span className="text-xs font-medium text-muted-foreground self-center mr-2">Table:</span>
 
                     <button
@@ -745,7 +745,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
             )}
 
             {(isHrActive || isHrToolbarOpen) && (
-                <div className="border-b border-border bg-secondary/20 px-2 py-1.5 flex flex-wrap gap-2 items-center">
+                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
                     <span className="text-xs font-medium text-muted-foreground">Line:</span>
 
                     {/* Color swatches */}
@@ -808,7 +808,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
                 </div>
             )}
             {isImageActive && (
-                <div className="border-b border-border bg-secondary/20 px-2 py-1.5 flex flex-wrap gap-2 items-center">
+                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
                     <span className="text-xs font-medium text-muted-foreground mr-2">Image:</span>
 
                     {/* Alignment */}
@@ -1292,7 +1292,7 @@ export function TipTapEditor({ value, onChange, placeholder, className }: TipTap
     }, [editor]);
 
     return (
-        <div className="border border-border rounded-md bg-card text-card-foreground shadow-sm">
+        <div className="border border-border rounded-md bg-card text-card-foreground shadow-sm overflow-y-auto max-h-[600px]">
             <style jsx global>{`
         .ProseMirror table {
           border-collapse: collapse;
