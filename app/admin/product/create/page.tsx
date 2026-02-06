@@ -473,7 +473,7 @@ export default function CreateProductPage() {
 
                 {/* Download Thumbnail */}
                 <div className="mt-4">
-                    <label className="block text-sm font-semibold text-foreground mb-2">Download Thumbnail</label>
+                    <label className="block text-sm font-semibold text-foreground mb-2">Download Section's Thumbnail</label>
                     <div className="flex gap-4 items-start">
                         <div className="flex-1">
                             <div className="relative border-2 border-dashed border-border rounded-md p-4 hover:bg-secondary/50 transition-colors cursor-pointer text-center h-32 flex flex-col items-center justify-center">
