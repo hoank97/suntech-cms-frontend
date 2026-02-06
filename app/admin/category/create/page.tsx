@@ -202,7 +202,7 @@ export default function CreateCategoryPage() {
                             <option value={CategoryType.INDUSTRY}>Industry</option>
                         </select>
                     </div>
-                    <div>
+                    {/* <div>
                         <label htmlFor="parent_id" className="block text-sm font-semibold text-foreground mb-2">
                             Parent Category (Optional)
                         </label>
@@ -225,7 +225,7 @@ export default function CreateCategoryPage() {
                                     ))
                                 : null}
                         </select>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Image Upload */}
