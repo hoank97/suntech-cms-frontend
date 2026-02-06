@@ -92,7 +92,7 @@ export default function ProductPage() {
       {/* Table */}
       <div className="flex-1 bg-card rounded-md border border-border overflow-hidden flex flex-col min-h-0">
         <div className="flex-1 overflow-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[1000px]">
             <thead className="bg-secondary border-b border-border sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-secondary-foreground w-20">Image</th>
@@ -130,7 +130,7 @@ export default function ProductPage() {
                     <td className="px-6 py-4 text-foreground">{product.name_en}</td>
                     <td className="px-6 py-4 text-foreground">{product.name_vi}</td>
                     <td className="px-6 py-4 text-foreground">{product.category?.name_en || 'N/A'}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium text-green-800 bg-green-100">
                         ✓ Active
                       </span>
