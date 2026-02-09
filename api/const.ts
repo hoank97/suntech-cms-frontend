@@ -31,6 +31,14 @@ export const APIS = {
         GET_ALL: () => `product`,
         DELETE: (id: number | string) => `product/${id}`
     },
+    POST: {
+        LIST: (options: { page: number, limit: number, q?: string }) => `post/list?page=${options.page}&limit=${options.limit}&q=${options.q}`,
+        CREATE: () => `post`,
+        UPDATE: (id: string) => `post/${id}`,
+        DETAIL: (id: string) => `post/${id}`,
+        GET_ALL: () => `post`,
+        DELETE: (id: number | string) => `post/${id}`
+    },
     UPLOAD: () => `upload/image`,
     UPLOAD_DOCUMENT: () => `upload/document`,
     IMAGE: {

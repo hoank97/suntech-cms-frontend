@@ -42,7 +42,7 @@ export default function Dashboard() {
           color: 'bg-accent/5',
           label: 'Total Posts',
           value: data.posts?.total || 0,
-          change: 'Not applicable'
+          change: 'Working'
         }
       ]);
     }
