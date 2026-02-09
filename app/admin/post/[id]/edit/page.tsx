@@ -1,5 +1,7 @@
 'use client';
 
+import dayjs from "dayjs";
+
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Upload, X } from 'lucide-react';
@@ -46,8 +48,7 @@ export default function EditPostPage() {
         content_vi: '',
         thumbnail_url: '',
         published_at: '',
-        author: '',
-        views: 0,
+        created_by: 'Admin',
     });
 
     useEffect(() => {
@@ -59,9 +60,8 @@ export default function EditPostPage() {
                 content_en: data.content_en || '',
                 content_vi: data.content_vi || '',
                 thumbnail_url: data.thumbnail_url || '',
-                published_at: data.published_at ? new Date(data.published_at).toISOString().split('T')[0] : '',
-                author: data.author || '',
-                views: data.views || 0,
+                published_at: data.published_at ? dayjs(data.published_at).format('YYYY-MM-DDTHH:mm:ss') : '',
+                created_by: data.created_by || '',
             });
         }
     }, [postData]);
@@ -83,10 +83,6 @@ export default function EditPostPage() {
         setThumbnailFile(file);
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
-
-        // Clear previous uploaded url if any, but we keep the form data consistent until submit
-        // However, if we remove the thumbnail, we should clear it.
-        // If we select a new one, we just display the preview.
     };
 
     const handleRemoveThumbnail = () => {
@@ -149,7 +145,7 @@ export default function EditPostPage() {
                     body: {
                         ...formData,
                         thumbnail_url: finalThumbnailUrl,
-                        views: Number(formData.views),
+                        published_at: dayjs(formData.published_at).format('YYYY-MM-DDTHH:mm:ss+07:00'),
                     }
                 },
             );
@@ -208,13 +204,13 @@ export default function EditPostPage() {
                         <label className="block text-sm font-semibold text-foreground mb-2">Author</label>
                         <input
                             type="text"
-                            name="author"
-                            value={formData.author}
+                            name="created_by"
+                            value={formData.created_by}
                             onChange={handleInputChange}
                             className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="block text-sm font-semibold text-foreground mb-2">Views</label>
                         <input
                             type="number"
@@ -224,11 +220,11 @@ export default function EditPostPage() {
                             min="0"
                             className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
-                    </div>
+                    </div> */}
                     <div>
                         <label className="block text-sm font-semibold text-foreground mb-2">Published At</label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             name="published_at"
                             value={formData.published_at}
                             onChange={handleInputChange}
@@ -239,7 +235,7 @@ export default function EditPostPage() {
 
                 {/* Thumbnail */}
                 <h3 className="text-lg font-semibold text-foreground border-b pb-2 pt-4">Thumbnail</h3>
-                <div className="mt-4">
+                <div className="mt-4 flex gap-2">
                     <div className="flex-1">
                         <div className="relative border-2 border-dashed border-border rounded-md p-4 hover:bg-secondary/50 transition-colors cursor-pointer text-center h-48 flex flex-col items-center justify-center">
                             <input

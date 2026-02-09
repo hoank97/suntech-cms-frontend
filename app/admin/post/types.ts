@@ -6,8 +6,8 @@ export interface Post {
     content_vi: string;
     thumbnail_url: string;
     published_at: string;
-    author: string;
-    views: number;
+    created_by: string;
     created_at?: string;
     updated_at?: string;
+    views?: number;
 }

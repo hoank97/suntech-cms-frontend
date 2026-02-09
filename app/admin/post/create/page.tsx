@@ -1,5 +1,7 @@
 'use client';
 
+import dayjs from "dayjs";
+
 import React, { useEffect, useRef, useState } from "react"
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Plus } from 'lucide-react';
@@ -35,9 +37,8 @@ export default function CreatePostPage() {
         content_en: '',
         content_vi: '',
         thumbnail_url: '',
-        published_at: new Date().toISOString().split('T')[0],
-        author: '',
-        views: 0,
+        published_at: dayjs().format('YYYY-MM-DDTHH:mm:ss'),
+        created_by: 'Admin',
     });
 
     // Image handling
@@ -122,12 +123,16 @@ export default function CreatePostPage() {
                     body: {
                         ...formData,
                         thumbnail_url: finalThumbnailUrl,
-                        views: Number(formData.views),
+                        published_at: dayjs(formData.published_at).format('YYYY-MM-DDTHH:mm:ss+07:00'),
                     }
                 },
             );
         } catch (error) {
-            console.error(error);
+            toast({
+                title: 'Error',
+                description: 'Error creating post ',
+                variant: 'destructive',
+            });
         } finally {
             setIsLoading(false);
             isSubmittingRef.current = false;
@@ -181,13 +186,13 @@ export default function CreatePostPage() {
                         <label className="block text-sm font-semibold text-foreground mb-2">Author</label>
                         <input
                             type="text"
-                            name="author"
-                            value={formData.author}
+                            name="created_by"
+                            value={formData.created_by}
                             onChange={handleInputChange}
                             className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <div>
+                    {/* <div>
                         <label className="block text-sm font-semibold text-foreground mb-2">Views</label>
                         <input
                             type="number"
@@ -197,11 +202,11 @@ export default function CreatePostPage() {
                             min="0"
                             className="w-full px-4 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                         />
-                    </div>
+                    </div> */}
                     <div>
                         <label className="block text-sm font-semibold text-foreground mb-2">Published At</label>
                         <input
-                            type="date"
+                            type="datetime-local"
                             name="published_at"
                             value={formData.published_at}
                             onChange={handleInputChange}
@@ -212,7 +217,7 @@ export default function CreatePostPage() {
 
                 {/* Thumbnail */}
                 <h3 className="text-lg font-semibold text-foreground border-b pb-2 pt-4">Thumbnail</h3>
-                <div className="mt-4">
+                <div className="mt-4 flex gap-2">
                     <div className="flex-1">
                         <div className="relative border-2 border-dashed border-border rounded-md p-4 hover:bg-secondary/50 transition-colors cursor-pointer text-center h-48 flex flex-col items-center justify-center">
                             <input

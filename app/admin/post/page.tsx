@@ -7,6 +7,7 @@ import { useRequest } from "@/hooks/use-request";
 import { APIS } from "@/api/const";
 import { useToast } from "@/hooks/use-toast";
 import { Post } from "./types";
+import { formatDate } from './helpers';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -130,9 +131,9 @@ export default function PostPage() {
                     </td>
                     <td className="px-6 py-4 text-foreground">{post.title_en}</td>
                     <td className="px-6 py-4 text-foreground">{post.title_vi}</td>
-                    <td className="px-6 py-4 text-foreground">{post.author}</td>
-                    <td className="px-6 py-4 text-foreground">
-                      {post.published_at ? new Date(post.published_at).toLocaleDateString() : 'N/A'}
+                    <td className="px-6 py-4 text-foreground">{post.created_by}</td>
+                    <td className="px-6 py-4 text-foreground text-nowrap text-sm">
+                      {post.published_at ? formatDate(post.published_at) : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-foreground">{post.views}</td>
                     <td className="px-6 py-4 text-right">
