@@ -226,644 +226,646 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
 
     return (
         <>
-            <div className="border-b border-border bg-secondary p-2 flex flex-wrap gap-1 sticky top-0 z-50 rounded-t-md">
-                <input
-                    type="file"
-                    className="hidden"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                />
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <button
-                        onClick={() => editor.chain().focus().toggleBold().run()}
-                        disabled={!editor.can().chain().focus().toggleBold().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('bold') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Bold"
-                        type="button"
-                    >
-                        <Bold className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleItalic().run()}
-                        disabled={!editor.can().chain().focus().toggleItalic().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('italic') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Italic"
-                        type="button"
-                    >
-                        <Italic className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleUnderline().run()}
-                        disabled={!editor.can().chain().focus().toggleUnderline().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('underline') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Underline"
-                        type="button"
-                    >
-                        <UnderlineIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleStrike().run()}
-                        disabled={!editor.can().chain().focus().toggleStrike().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('strike') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Strike"
-                        type="button"
-                    >
-                        <Strikethrough className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('heading', { level: 1 }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Heading 1"
-                        type="button"
-                    >
-                        <Heading1 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('heading', { level: 2 }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Heading 2"
-                        type="button"
-                    >
-                        <Heading2 className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('heading', { level: 3 }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Heading 3"
-                        type="button"
-                    >
-                        <Heading3 className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <div className="relative group">
+            <div className="sticky top-0 z-50 rounded-t-md bg-secondary">
+                <div className="border-b border-border bg-secondary p-2 flex flex-wrap gap-1 rounded-t-md">
+                    <input
+                        type="file"
+                        className="hidden"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                    />
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
                         <button
-                            onClick={() => setIsColorOpen(!isColorOpen)}
+                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            disabled={!editor.can().chain().focus().toggleBold().run()}
                             className={cn(
                                 "p-2 rounded hover:bg-background transition-colors",
-                                editor.getAttributes('textStyle').color ? 'bg-background text-primary' : 'text-muted-foreground'
+                                editor.isActive('bold') ? 'bg-background text-primary' : 'text-muted-foreground'
                             )}
-                            title="Text Color"
+                            title="Bold"
                             type="button"
                         >
-                            <Palette className="w-4 h-4" style={{ color: editor.getAttributes('textStyle').color }} />
+                            <Bold className="w-4 h-4" />
                         </button>
-                        {isColorOpen && (
-                            <div className="absolute top-full left-0 z-50 pt-1">
-                                <div className="bg-popover border border-border rounded shadow-md p-2 flex flex-col gap-2 w-48">
-                                    <div className="grid grid-cols-5 gap-1">
-                                        {/* Project Colors */}
-                                        <button
-                                            onClick={() => { editor.chain().focus().setColor('#086799').run(); setIsColorOpen(false); }}
-                                            className="w-6 h-6 rounded border border-border"
-                                            style={{ backgroundColor: '#086799' }}
-                                            title="Project Blue #086799"
-                                        />
-                                        <button
-                                            onClick={() => { editor.chain().focus().setColor('#f37440').run(); setIsColorOpen(false); }}
-                                            className="w-6 h-6 rounded border border-border"
-                                            style={{ backgroundColor: '#f37440' }}
-                                            title="Project Orange #f37440"
-                                        />
-                                        {/* Standard Colors */}
-                                        <button onClick={() => { editor.chain().focus().setColor('#000000').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-black" title="Black" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#4b5563').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-gray-600" title="Gray" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#dc2626').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-red-600" title="Red" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#2563eb').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-blue-600" title="Blue" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#16a34a').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-green-600" title="Green" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#ca8a04').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-yellow-600" title="Yellow" />
-                                        <button onClick={() => { editor.chain().focus().setColor('#9333ea').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-purple-600" title="Purple" />
-                                    </div>
-                                    <div className="flex gap-2 items-center">
-                                        <input
-                                            type="color"
-                                            className="h-8 w-full cursor-pointer"
-                                            onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
-                                            value={editor.getAttributes('textStyle').color || '#000000'}
-                                        />
-                                        <button
-                                            onClick={() => { editor.chain().focus().unsetColor().run(); setIsColorOpen(false); }}
-                                            className="text-xs px-2 py-1 border border-border rounded hover:bg-accent"
-                                        >
-                                            Reset
-                                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            disabled={!editor.can().chain().focus().toggleItalic().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('italic') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Italic"
+                            type="button"
+                        >
+                            <Italic className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleUnderline().run()}
+                            disabled={!editor.can().chain().focus().toggleUnderline().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('underline') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Underline"
+                            type="button"
+                        >
+                            <UnderlineIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleStrike().run()}
+                            disabled={!editor.can().chain().focus().toggleStrike().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('strike') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Strike"
+                            type="button"
+                        >
+                            <Strikethrough className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('heading', { level: 1 }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Heading 1"
+                            type="button"
+                        >
+                            <Heading1 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('heading', { level: 2 }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Heading 2"
+                            type="button"
+                        >
+                            <Heading2 className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('heading', { level: 3 }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Heading 3"
+                            type="button"
+                        >
+                            <Heading3 className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                        <div className="relative group">
+                            <button
+                                onClick={() => setIsColorOpen(!isColorOpen)}
+                                className={cn(
+                                    "p-2 rounded hover:bg-background transition-colors",
+                                    editor.getAttributes('textStyle').color ? 'bg-background text-primary' : 'text-muted-foreground'
+                                )}
+                                title="Text Color"
+                                type="button"
+                            >
+                                <Palette className="w-4 h-4" style={{ color: editor.getAttributes('textStyle').color }} />
+                            </button>
+                            {isColorOpen && (
+                                <div className="absolute top-full left-0 z-50 pt-1">
+                                    <div className="bg-popover border border-border rounded shadow-md p-2 flex flex-col gap-2 w-48">
+                                        <div className="grid grid-cols-5 gap-1">
+                                            {/* Project Colors */}
+                                            <button
+                                                onClick={() => { editor.chain().focus().setColor('#086799').run(); setIsColorOpen(false); }}
+                                                className="w-6 h-6 rounded border border-border"
+                                                style={{ backgroundColor: '#086799' }}
+                                                title="Project Blue #086799"
+                                            />
+                                            <button
+                                                onClick={() => { editor.chain().focus().setColor('#f37440').run(); setIsColorOpen(false); }}
+                                                className="w-6 h-6 rounded border border-border"
+                                                style={{ backgroundColor: '#f37440' }}
+                                                title="Project Orange #f37440"
+                                            />
+                                            {/* Standard Colors */}
+                                            <button onClick={() => { editor.chain().focus().setColor('#000000').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-black" title="Black" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#4b5563').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-gray-600" title="Gray" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#dc2626').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-red-600" title="Red" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#2563eb').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-blue-600" title="Blue" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#16a34a').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-green-600" title="Green" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#ca8a04').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-yellow-600" title="Yellow" />
+                                            <button onClick={() => { editor.chain().focus().setColor('#9333ea').run(); setIsColorOpen(false); }} className="w-6 h-6 rounded border border-border bg-purple-600" title="Purple" />
+                                        </div>
+                                        <div className="flex gap-2 items-center">
+                                            <input
+                                                type="color"
+                                                className="h-8 w-full cursor-pointer"
+                                                onInput={(e) => editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()}
+                                                value={editor.getAttributes('textStyle').color || '#000000'}
+                                            />
+                                            <button
+                                                onClick={() => { editor.chain().focus().unsetColor().run(); setIsColorOpen(false); }}
+                                                className="text-xs px-2 py-1 border border-border rounded hover:bg-accent"
+                                            >
+                                                Reset
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <button
-                        onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive({ textAlign: 'left' }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Align Left"
-                        type="button"
-                    >
-                        <AlignLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive({ textAlign: 'center' }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Align Center"
-                        type="button"
-                    >
-                        <AlignCenter className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive({ textAlign: 'right' }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Align Right"
-                        type="button"
-                    >
-                        <AlignRight className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive({ textAlign: 'justify' }) ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Align Justify"
-                        type="button"
-                    >
-                        <AlignJustify className="w-4 h-4" />
-                    </button>
-
-                    <div className="w-px h-6 bg-border mx-1" />
-
-                    <div className="relative group">
-                        <button
-                            onClick={() => {
-                                setIsLineHeightOpen(!isLineHeightOpen);
-                                setIsLinkOpen(false); // Close others
-                                setIsColorOpen(false);
-                            }}
-                            className={cn(
-                                "p-2 rounded hover:bg-background transition-colors relative",
-                                isLineHeightOpen ? 'bg-background text-primary' : 'text-muted-foreground'
                             )}
-                            title="Line Height"
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                        <button
+                            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive({ textAlign: 'left' }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Align Left"
                             type="button"
                         >
-                            <MoveVertical className="w-4 h-4" />
+                            <AlignLeft className="w-4 h-4" />
                         </button>
-                        {isLineHeightOpen && (
-                            <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded shadow-lg p-1 min-w-[120px] z-50 flex flex-col gap-1">
-                                <button
-                                    onClick={() => {
-                                        editor.chain().focus().unsetLineHeight().run();
-                                        setIsLineHeightOpen(false);
-                                    }}
-                                    className="text-xs px-2 py-1 hover:bg-accent text-left rounded w-full"
-                                    type="button"
-                                >
-                                    Default
-                                </button>
-                                {['1', '1.15', '1.5', '2.0', '2.5', '3'].map((height) => (
+                        <button
+                            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive({ textAlign: 'center' }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Align Center"
+                            type="button"
+                        >
+                            <AlignCenter className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive({ textAlign: 'right' }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Align Right"
+                            type="button"
+                        >
+                            <AlignRight className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive({ textAlign: 'justify' }) ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Align Justify"
+                            type="button"
+                        >
+                            <AlignJustify className="w-4 h-4" />
+                        </button>
+
+                        <div className="w-px h-6 bg-border mx-1" />
+
+                        <div className="relative group">
+                            <button
+                                onClick={() => {
+                                    setIsLineHeightOpen(!isLineHeightOpen);
+                                    setIsLinkOpen(false); // Close others
+                                    setIsColorOpen(false);
+                                }}
+                                className={cn(
+                                    "p-2 rounded hover:bg-background transition-colors relative",
+                                    isLineHeightOpen ? 'bg-background text-primary' : 'text-muted-foreground'
+                                )}
+                                title="Line Height"
+                                type="button"
+                            >
+                                <MoveVertical className="w-4 h-4" />
+                            </button>
+                            {isLineHeightOpen && (
+                                <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded shadow-lg p-1 min-w-[120px] z-50 flex flex-col gap-1">
                                     <button
-                                        key={height}
                                         onClick={() => {
-                                            editor.chain().focus().setLineHeight(height).run();
+                                            editor.chain().focus().unsetLineHeight().run();
                                             setIsLineHeightOpen(false);
                                         }}
                                         className="text-xs px-2 py-1 hover:bg-accent text-left rounded w-full"
                                         type="button"
                                     >
-                                        {height}
+                                        Default
                                     </button>
-                                ))}
-                            </div>
-                        )}
+                                    {['1', '1.15', '1.5', '2.0', '2.5', '3'].map((height) => (
+                                        <button
+                                            key={height}
+                                            onClick={() => {
+                                                editor.chain().focus().setLineHeight(height).run();
+                                                setIsLineHeightOpen(false);
+                                            }}
+                                            className="text-xs px-2 py-1 hover:bg-accent text-left rounded w-full"
+                                            type="button"
+                                        >
+                                            {height}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <button
-                        onClick={() => editor.chain().focus().toggleBulletList().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('bulletList') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Bullet List"
-                        type="button"
-                    >
-                        <List className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('orderedList') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Ordered List"
-                        type="button"
-                    >
-                        <ListOrdered className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <div className="relative group">
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
                         <button
-                            onClick={openLinkMenu}
+                            onClick={() => editor.chain().focus().toggleBulletList().run()}
                             className={cn(
                                 "p-2 rounded hover:bg-background transition-colors",
-                                editor.isActive('link') ? 'bg-background text-primary' : 'text-muted-foreground'
+                                editor.isActive('bulletList') ? 'bg-background text-primary' : 'text-muted-foreground'
                             )}
-                            title="Link"
+                            title="Bullet List"
                             type="button"
                         >
-                            <LinkIcon className="w-4 h-4" />
+                            <List className="w-4 h-4" />
                         </button>
-                        {isLinkOpen && (
-                            <div className="absolute top-full left-0 z-50 w-64 pt-1">
-                                <div className="bg-popover border border-border rounded shadow-md p-2 flex flex-col gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Text"
-                                        className="w-full px-2 py-1 text-sm border border-input rounded bg-background"
-                                        value={linkText}
-                                        onChange={(e) => setLinkText(e.target.value)}
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="URL"
-                                        className="w-full px-2 py-1 text-sm border border-input rounded bg-background"
-                                        value={linkUrl}
-                                        onChange={(e) => setLinkUrl(e.target.value)}
-                                    />
-                                    <div className="flex gap-1 justify-end">
-                                        <button
-                                            onClick={removeLink}
-                                            className="p-1 hover:bg-accent rounded text-destructive"
-                                            title="Remove Link"
-                                            type="button"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setIsLinkOpen(false)}
-                                            className="p-1 hover:bg-accent rounded text-muted-foreground"
-                                            title="Cancel"
-                                            type="button"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={saveLink}
-                                            className="p-1 hover:bg-accent rounded text-primary"
-                                            title="Save"
-                                            type="button"
-                                        >
-                                            <Check className="w-4 h-4" />
-                                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('orderedList') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Ordered List"
+                            type="button"
+                        >
+                            <ListOrdered className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                        <div className="relative group">
+                            <button
+                                onClick={openLinkMenu}
+                                className={cn(
+                                    "p-2 rounded hover:bg-background transition-colors",
+                                    editor.isActive('link') ? 'bg-background text-primary' : 'text-muted-foreground'
+                                )}
+                                title="Link"
+                                type="button"
+                            >
+                                <LinkIcon className="w-4 h-4" />
+                            </button>
+                            {isLinkOpen && (
+                                <div className="absolute top-full left-0 z-50 w-64 pt-1">
+                                    <div className="bg-popover border border-border rounded shadow-md p-2 flex flex-col gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Text"
+                                            className="w-full px-2 py-1 text-sm border border-input rounded bg-background"
+                                            value={linkText}
+                                            onChange={(e) => setLinkText(e.target.value)}
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="URL"
+                                            className="w-full px-2 py-1 text-sm border border-input rounded bg-background"
+                                            value={linkUrl}
+                                            onChange={(e) => setLinkUrl(e.target.value)}
+                                        />
+                                        <div className="flex gap-1 justify-end">
+                                            <button
+                                                onClick={removeLink}
+                                                className="p-1 hover:bg-accent rounded text-destructive"
+                                                title="Remove Link"
+                                                type="button"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setIsLinkOpen(false)}
+                                                className="p-1 hover:bg-accent rounded text-muted-foreground"
+                                                title="Cancel"
+                                                type="button"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={saveLink}
+                                                className="p-1 hover:bg-accent rounded text-primary"
+                                                title="Save"
+                                                type="button"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                    <button
-                        onClick={addImage}
-                        className="p-2 rounded hover:bg-background transition-colors text-muted-foreground"
-                        title="Image"
-                        type="button"
-                    >
-                        <ImageIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-                        className="p-2 rounded hover:bg-background transition-colors text-muted-foreground"
-                        title="Insert Table"
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        <TableIcon className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-                    <button
-                        onClick={() => {
-                            setIsHrToolbarOpen(!isHrToolbarOpen);
-                        }}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            isHrToolbarOpen || isHrActive ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Insert Horizontal Rule"
-                        type="button"
-                    >
-                        <Minus className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('blockquote') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Blockquote"
-                        type="button"
-                    >
-                        <Quote className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                        className={cn(
-                            "p-2 rounded hover:bg-background transition-colors",
-                            editor.isActive('codeBlock') ? 'bg-background text-primary' : 'text-muted-foreground'
-                        )}
-                        title="Code Block"
-                        type="button"
-                    >
-                        <Code className="w-4 h-4" />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-1 ml-auto">
-                    <button
-                        onClick={() => editor.chain().focus().undo().run()}
-                        disabled={!editor.can().chain().focus().undo().run()}
-                        className="p-2 rounded hover:bg-background transition-colors text-muted-foreground disabled:opacity-50"
-                        title="Undo"
-                        type="button"
-                    >
-                        <Undo className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().redo().run()}
-                        disabled={!editor.can().chain().focus().redo().run()}
-                        className="p-2 rounded hover:bg-background transition-colors text-muted-foreground disabled:opacity-50"
-                        title="Redo"
-                        type="button"
-                    >
-                        <Redo className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            {/* Table Operations Toolbar - Only show when table is active */}
-            {isTableActive && (
-                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-1">
-                    <span className="text-xs font-medium text-muted-foreground self-center mr-2">Table:</span>
-
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        + Col Before
-                    </button>
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        + Col After
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            if (!editor.chain().focus().deleteColumn().run()) {
-                                editor.chain().focus().deleteTable().run();
-                            }
-                        }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        Delete Col
-                    </button>
-                    <div className="w-px h-4 bg-border self-center mx-1" />
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        + Row Before
-                    </button>
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        + Row After
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            if (!editor.chain().focus().deleteRow().run()) {
-                                editor.chain().focus().deleteTable().run();
-                            }
-                        }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        Delete Row
-                    </button>
-                    <div className="w-px h-4 bg-border self-center mx-1" />
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().mergeCells().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!editor.can().mergeCells()}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        Merge Cells
-                    </button>
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().splitCell().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
-                        disabled={!editor.can().splitCell()}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        Split Cell
-                    </button>
-                    <button
-                        onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        Delete Table
-                    </button>
-                    <div className="w-px h-4 bg-border self-center mx-1" />
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            const currentNoBorder = editor.getAttributes('table').noBorder;
-                            editor.chain().focus().updateAttributes('table', { noBorder: !currentNoBorder }).run();
-                        }}
-                        className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50 flex items-center gap-1"
-                        disabled={!isTableActive}
-                        onMouseDown={(e) => e.preventDefault()}
-                    >
-                        {editor.getAttributes('table').noBorder ? <><Eye className="w-3 h-3" /> Show Border</> : <><EyeOff className="w-3 h-3" /> Hide Border</>}
-                    </button>
-
-                </div>
-            )}
-
-            {(isHrActive || isHrToolbarOpen) && (
-                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
-                    <span className="text-xs font-medium text-muted-foreground">Line:</span>
-
-                    {/* Color swatches */}
-                    <div className="flex gap-1 items-center">
-                        <button onClick={() => updateHrSetting({ color: '#086799' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#086799' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#086799' }} title="Project Blue" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#f37440' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#f37440' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#f37440' }} title="Project Orange" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#000000' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#000000' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#000000' }} title="Black" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#4b5563' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#4b5563' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#4b5563' }} title="Gray" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#dc2626' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#dc2626' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#dc2626' }} title="Red" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#2563eb' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#2563eb' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#2563eb' }} title="Blue" type="button" />
-                        <button onClick={() => updateHrSetting({ color: '#16a34a' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#16a34a' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#16a34a' }} title="Green" type="button" />
-                        <input type="color" value={hrSettings.color} onChange={(e) => updateHrSetting({ color: e.target.value })} className="w-5 h-5 cursor-pointer rounded border border-border" title="Custom color" />
-                    </div>
-
-                    <div className="w-px h-4 bg-border" />
-
-                    {/* Width */}
-                    <span className="text-xs text-muted-foreground">W:</span>
-                    <button onClick={() => updateHrSetting({ width: '30px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '30px' && 'bg-accent')} type="button">30px</button>
-                    <button onClick={() => updateHrSetting({ width: '25%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '25%' && 'bg-accent')} type="button">25%</button>
-                    <button onClick={() => updateHrSetting({ width: '50%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '50%' && 'bg-accent')} type="button">50%</button>
-                    <button onClick={() => updateHrSetting({ width: '75%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '75%' && 'bg-accent')} type="button">75%</button>
-                    <button onClick={() => updateHrSetting({ width: '100%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '100%' && 'bg-accent')} type="button">100%</button>
-
-                    <div className="w-px h-4 bg-border" />
-
-                    {/* Height */}
-                    <span className="text-xs text-muted-foreground">H:</span>
-                    <button onClick={() => updateHrSetting({ height: '1px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '1px' && 'bg-accent')} type="button">1px</button>
-                    <button onClick={() => updateHrSetting({ height: '2px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '2px' && 'bg-accent')} type="button">2px</button>
-                    <button onClick={() => updateHrSetting({ height: '3px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '3px' && 'bg-accent')} type="button">3px</button>
-                    <button onClick={() => updateHrSetting({ height: '5px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '5px' && 'bg-accent')} type="button">5px</button>
-
-                    <div className="w-px h-4 bg-border" />
-
-                    {/* Alignment */}
-                    <button onClick={() => updateHrSetting({ alignment: 'left' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'left' && 'bg-accent')} type="button" title="Align Left">
-                        <AlignLeft className="w-3 h-3" />
-                    </button>
-                    <button onClick={() => updateHrSetting({ alignment: 'center' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'center' && 'bg-accent')} type="button" title="Align Center">
-                        <AlignCenter className="w-3 h-3" />
-                    </button>
-                    <button onClick={() => updateHrSetting({ alignment: 'right' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'right' && 'bg-accent')} type="button" title="Align Right">
-                        <AlignRight className="w-3 h-3" />
-                    </button>
-
-                    {/* Create/Update Button */}
-                    {!isHrActive && (
+                            )}
+                        </div>
                         <button
-                            onClick={() => {
-                                (editor.chain().focus() as any).setHorizontalRule(hrSettings).run();
-                                setIsHrToolbarOpen(false);
-                            }}
-                            className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center gap-1 ml-auto"
+                            onClick={addImage}
+                            className="p-2 rounded hover:bg-background transition-colors text-muted-foreground"
+                            title="Image"
                             type="button"
                         >
-                            <Plus className="w-3 h-3" /> Insert Line
+                            <ImageIcon className="w-4 h-4" />
                         </button>
-                    )}
+                        <button
+                            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+                            className="p-2 rounded hover:bg-background transition-colors text-muted-foreground"
+                            title="Insert Table"
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            <TableIcon className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+                        <button
+                            onClick={() => {
+                                setIsHrToolbarOpen(!isHrToolbarOpen);
+                            }}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                isHrToolbarOpen || isHrActive ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Insert Horizontal Rule"
+                            type="button"
+                        >
+                            <Minus className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('blockquote') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Blockquote"
+                            type="button"
+                        >
+                            <Quote className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                            className={cn(
+                                "p-2 rounded hover:bg-background transition-colors",
+                                editor.isActive('codeBlock') ? 'bg-background text-primary' : 'text-muted-foreground'
+                            )}
+                            title="Code Block"
+                            type="button"
+                        >
+                            <Code className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-1 ml-auto">
+                        <button
+                            onClick={() => editor.chain().focus().undo().run()}
+                            disabled={!editor.can().chain().focus().undo().run()}
+                            className="p-2 rounded hover:bg-background transition-colors text-muted-foreground disabled:opacity-50"
+                            title="Undo"
+                            type="button"
+                        >
+                            <Undo className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().redo().run()}
+                            disabled={!editor.can().chain().focus().redo().run()}
+                            className="p-2 rounded hover:bg-background transition-colors text-muted-foreground disabled:opacity-50"
+                            title="Redo"
+                            type="button"
+                        >
+                            <Redo className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
-            )}
-            {isImageActive && (
-                <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
-                    <span className="text-xs font-medium text-muted-foreground mr-2">Image:</span>
 
-                    {/* Alignment */}
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'left' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'left' && 'bg-accent')}
-                        type="button"
-                        title="Align Left"
-                    >
-                        <AlignLeft className="w-3 h-3" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'center' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'center' && 'bg-accent')}
-                        type="button"
-                        title="Align Center"
-                    >
-                        <AlignCenter className="w-3 h-3" />
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'right' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'right' && 'bg-accent')}
-                        type="button"
-                        title="Align Right"
-                    >
-                        <AlignRight className="w-3 h-3" />
-                    </button>
+                {/* Table Operations Toolbar - Only show when table is active */}
+                {isTableActive && (
+                    <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-1">
+                        <span className="text-xs font-medium text-muted-foreground self-center mr-2">Table:</span>
+
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnBefore().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            + Col Before
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().addColumnAfter().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            + Col After
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (!editor.chain().focus().deleteColumn().run()) {
+                                    editor.chain().focus().deleteTable().run();
+                                }
+                            }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            Delete Col
+                        </button>
+                        <div className="w-px h-4 bg-border self-center mx-1" />
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowBefore().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            + Row Before
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().addRowAfter().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            + Row After
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (!editor.chain().focus().deleteRow().run()) {
+                                    editor.chain().focus().deleteTable().run();
+                                }
+                            }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            Delete Row
+                        </button>
+                        <div className="w-px h-4 bg-border self-center mx-1" />
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().mergeCells().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!editor.can().mergeCells()}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            Merge Cells
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().splitCell().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50"
+                            disabled={!editor.can().splitCell()}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            Split Cell
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); editor.chain().focus().deleteTable().run(); }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded text-destructive disabled:opacity-50"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            Delete Table
+                        </button>
+                        <div className="w-px h-4 bg-border self-center mx-1" />
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                const currentNoBorder = editor.getAttributes('table').noBorder;
+                                editor.chain().focus().updateAttributes('table', { noBorder: !currentNoBorder }).run();
+                            }}
+                            className="text-xs px-2 py-1 hover:bg-accent hover:text-accent-foreground rounded disabled:opacity-50 flex items-center gap-1"
+                            disabled={!isTableActive}
+                            onMouseDown={(e) => e.preventDefault()}
+                        >
+                            {editor.getAttributes('table').noBorder ? <><Eye className="w-3 h-3" /> Show Border</> : <><EyeOff className="w-3 h-3" /> Hide Border</>}
+                        </button>
+
+                    </div>
+                )}
+
+                {(isHrActive || isHrToolbarOpen) && (
+                    <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
+                        <span className="text-xs font-medium text-muted-foreground">Line:</span>
+
+                        {/* Color swatches */}
+                        <div className="flex gap-1 items-center">
+                            <button onClick={() => updateHrSetting({ color: '#086799' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#086799' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#086799' }} title="Project Blue" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#f37440' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#f37440' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#f37440' }} title="Project Orange" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#000000' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#000000' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#000000' }} title="Black" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#4b5563' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#4b5563' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#4b5563' }} title="Gray" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#dc2626' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#dc2626' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#dc2626' }} title="Red" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#2563eb' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#2563eb' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#2563eb' }} title="Blue" type="button" />
+                            <button onClick={() => updateHrSetting({ color: '#16a34a' })} className={cn("w-5 h-5 rounded border-2", hrSettings.color === '#16a34a' ? 'border-primary' : 'border-border')} style={{ backgroundColor: '#16a34a' }} title="Green" type="button" />
+                            <input type="color" value={hrSettings.color} onChange={(e) => updateHrSetting({ color: e.target.value })} className="w-5 h-5 cursor-pointer rounded border border-border" title="Custom color" />
+                        </div>
+
+                        <div className="w-px h-4 bg-border" />
+
+                        {/* Width */}
+                        <span className="text-xs text-muted-foreground">W:</span>
+                        <button onClick={() => updateHrSetting({ width: '30px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '30px' && 'bg-accent')} type="button">30px</button>
+                        <button onClick={() => updateHrSetting({ width: '25%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '25%' && 'bg-accent')} type="button">25%</button>
+                        <button onClick={() => updateHrSetting({ width: '50%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '50%' && 'bg-accent')} type="button">50%</button>
+                        <button onClick={() => updateHrSetting({ width: '75%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '75%' && 'bg-accent')} type="button">75%</button>
+                        <button onClick={() => updateHrSetting({ width: '100%' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.width === '100%' && 'bg-accent')} type="button">100%</button>
+
+                        <div className="w-px h-4 bg-border" />
+
+                        {/* Height */}
+                        <span className="text-xs text-muted-foreground">H:</span>
+                        <button onClick={() => updateHrSetting({ height: '1px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '1px' && 'bg-accent')} type="button">1px</button>
+                        <button onClick={() => updateHrSetting({ height: '2px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '2px' && 'bg-accent')} type="button">2px</button>
+                        <button onClick={() => updateHrSetting({ height: '3px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '3px' && 'bg-accent')} type="button">3px</button>
+                        <button onClick={() => updateHrSetting({ height: '5px' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.height === '5px' && 'bg-accent')} type="button">5px</button>
+
+                        <div className="w-px h-4 bg-border" />
+
+                        {/* Alignment */}
+                        <button onClick={() => updateHrSetting({ alignment: 'left' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'left' && 'bg-accent')} type="button" title="Align Left">
+                            <AlignLeft className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => updateHrSetting({ alignment: 'center' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'center' && 'bg-accent')} type="button" title="Align Center">
+                            <AlignCenter className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => updateHrSetting({ alignment: 'right' })} className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", hrSettings.alignment === 'right' && 'bg-accent')} type="button" title="Align Right">
+                            <AlignRight className="w-3 h-3" />
+                        </button>
+
+                        {/* Create/Update Button */}
+                        {!isHrActive && (
+                            <button
+                                onClick={() => {
+                                    (editor.chain().focus() as any).setHorizontalRule(hrSettings).run();
+                                    setIsHrToolbarOpen(false);
+                                }}
+                                className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90 flex items-center gap-1 ml-auto"
+                                type="button"
+                            >
+                                <Plus className="w-3 h-3" /> Insert Line
+                            </button>
+                        )}
+                    </div>
+                )}
+                {isImageActive && (
+                    <div className="border-b border-border bg-secondary px-2 py-1.5 flex flex-wrap gap-2 items-center">
+                        <span className="text-xs font-medium text-muted-foreground mr-2">Image:</span>
+
+                        {/* Alignment */}
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'left' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'left' && 'bg-accent')}
+                            type="button"
+                            title="Align Left"
+                        >
+                            <AlignLeft className="w-3 h-3" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'center' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'center' && 'bg-accent')}
+                            type="button"
+                            title="Align Center"
+                        >
+                            <AlignCenter className="w-3 h-3" />
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { alignment: 'right' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').alignment === 'right' && 'bg-accent')}
+                            type="button"
+                            title="Align Right"
+                        >
+                            <AlignRight className="w-3 h-3" />
+                        </button>
 
 
 
-                    {/* Size Presets */}
-                    <span className="text-xs text-muted-foreground">Width:</span>
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { width: '25%' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '25%' && 'bg-accent')}
-                        type="button"
-                    >
-                        25%
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { width: '50%' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '50%' && 'bg-accent')}
-                        type="button"
-                    >
-                        50%
-                    </button>
-                    <button
-                        onClick={() => editor.chain().focus().updateAttributes('image', { width: '100%' }).run()}
-                        className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '100%' && 'bg-accent')}
-                        type="button"
-                    >
-                        100%
-                    </button>
-                </div>
-            )}
+                        {/* Size Presets */}
+                        <span className="text-xs text-muted-foreground">Width:</span>
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { width: '25%' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '25%' && 'bg-accent')}
+                            type="button"
+                        >
+                            25%
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { width: '50%' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '50%' && 'bg-accent')}
+                            type="button"
+                        >
+                            50%
+                        </button>
+                        <button
+                            onClick={() => editor.chain().focus().updateAttributes('image', { width: '100%' }).run()}
+                            className={cn("text-xs px-2 py-0.5 border border-border rounded hover:bg-accent", editor.getAttributes('image').width === '100%' && 'bg-accent')}
+                            type="button"
+                        >
+                            100%
+                        </button>
+                    </div>
+                )}
+            </div>
             {editor && (
                 <BubbleMenu editor={editor} shouldShow={({ editor }) => editor.isActive('link')}>
                     <div className="bg-popover border border-border rounded-md shadow-md p-1 flex items-center gap-1">
